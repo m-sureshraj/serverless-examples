@@ -1,0 +1,14 @@
+{
+  "name": "dynamodb-streams",
+  "version": "1.0.0",
+  "description": "This example is the Serverless framework version of the following AWS tutorial: Process New Items with DynamoDB Streams and Lambda",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "aws-sdk": "^2.1125.0"
+  }
+}

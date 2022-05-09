@@ -1,0 +1,2 @@
+.env.*.yml
+!.env.sample.yml

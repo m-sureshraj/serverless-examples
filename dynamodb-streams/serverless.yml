@@ -1,0 +1,82 @@
+service: dynamodb-streams
+frameworkVersion: '3'
+
+provider:
+  name: aws
+  runtime: nodejs14.x
+  environment: ${file(./.env.${sls:stage}.yml)}
+  region: ${self:provider.environment.REGION}
+  iam:
+    role:
+      statements:
+        - Effect: Allow
+          Action:
+            - dynamodb:PutItem
+            # Lambda needs the following permissions to manage resources related to DynamoDB stream.
+            - dynamodb:DescribeStream
+            - dynamodb:GetRecords
+            - dynamodb:GetShardIterator
+            - dynamodb:ListStreams
+          Resource:
+            - Fn::GetAtt: [barkTable, Arn]
+
+        - Effect: Allow
+          Action:
+            - sns:Publish
+          Resource:
+            # a way to access sns arn before it gets created
+            - !Ref wooferTopic
+
+functions:
+  # we use this function to insert an item to dynamodb which internally
+  # triggers the `dbChangeListener` function
+  bark:
+    handler: bark.handler
+    events:
+      - httpApi:
+          path: /
+          method: post
+
+  dbChangeListener:
+    handler: listener.handler
+    environment:
+      SNS_TOPIC_ARN: !Ref wooferTopic
+    events:
+      - stream:
+          type: dynamodb
+          arn:
+            Fn::GetAtt: [barkTable, StreamArn]
+          batchSize: 2
+          batchWindow: 60
+
+resources:
+  Resources:
+    barkTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        TableName: ${self:provider.environment.TABLE_NAME}
+        AttributeDefinitions:
+          - AttributeName: username
+            AttributeType: S
+          - AttributeName: timestamp
+            AttributeType: S
+        KeySchema:
+          - AttributeName: username
+            KeyType: HASH
+          - AttributeName: timestamp
+            KeyType: RANGE
+        StreamSpecification:
+          StreamViewType: NEW_AND_OLD_IMAGES
+        BillingMode: PAY_PER_REQUEST
+
+    wooferTopic:
+      Type: AWS::SNS::Topic
+      Properties:
+        TopicName: wooferTopic
+
+    wooferTopicEmailSubscription:
+      Type: AWS::SNS::Subscription
+      Properties:
+        Endpoint: ${self:provider.environment.EMAIL_SUBSCRIBER}
+        Protocol: 'email'
+        TopicArn: !Ref wooferTopic
