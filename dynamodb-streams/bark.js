@@ -17,6 +17,11 @@ async function insertItem(event) {
 
     await DBClient.put(params).promise();
     console.log('Item successfully added to the db', { item });
+
+    return {
+        statusCode: 200,
+        body: 'Item has successfully saved',
+    };
 }
 
 module.exports = {
