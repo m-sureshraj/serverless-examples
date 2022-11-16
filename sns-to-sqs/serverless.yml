@@ -1,0 +1,77 @@
+service: sns-to-sqs
+
+frameworkVersion: '3'
+
+provider:
+  name: aws
+  runtime: nodejs14.x
+  region: eu-west-2
+  stage: ${opt:stage, 'dev'}
+
+functions:
+  log:
+    handler: handler.log
+    events:
+      - sqs:
+          batchSize: 3
+          arn:
+            Fn::GetAtt: [loanStatusQueue, Arn]
+
+resources:
+  Resources:
+    loanStatusTopic:
+      Type: "AWS::SNS::Topic"
+      Properties:
+        TopicName: loan-status-topic-${self:provider.stage}
+
+    loanStatusTopicSubscription:
+      Type: 'AWS::SNS::Subscription'
+      Properties:
+        TopicArn: !Ref loanStatusTopic
+        Endpoint: # the endpoint that receives notifications from the Topic
+          Fn::GetAtt: [loanStatusQueue, Arn]
+        Protocol: sqs
+        RawMessageDelivery: 'true'
+        # - By default, a subscriber receives every message published to the topic.
+        # - Filter policy allows subscribers to receive a subset of messages. 
+        # - The following policy ensures the subscriber gets notified only when the 
+        #   published message's `messageAttributes` contains a property called some key, 
+        #   and the value is foo, bar, or baz. 
+        # https://docs.aws.amazon.com/sns/latest/dg/sns-message-filtering.html
+        FilterPolicy:
+          someKey: ['foo', 'bar', 'baz']
+
+    loanStatusQueue:
+      Type: "AWS::SQS::Queue"
+      Properties:
+        QueueName: loan-status-queue-${self:provider.stage}
+        DelaySeconds: 5 # wait 5 seconds before dispatching events (batching)
+        RedrivePolicy:
+          deadLetterTargetArn:
+            Fn::GetAtt: [loanStatusDLQ, Arn]
+          maxReceiveCount: 3 # number of times a message is delivered to the source queue before being moved to the dead-letter queue.
+
+    loanStatusQueuePolicy:
+      Type: AWS::SQS::QueuePolicy
+      Properties:
+        PolicyDocument: 
+          Version: "2012-10-17"
+          Statement:
+            Effect: Allow
+            Principal:
+              Service:
+                - "sns.amazonaws.com"
+            Action: "sqs:SendMessage"
+            Resource:
+              - Fn::GetAtt: [loanStatusQueue, Arn]
+            Condition:
+              ArnEquals:
+                AWS:SourceArn:
+                  - Ref: loanStatusTopic
+        Queues:
+          - Ref: loanStatusQueue
+
+    loanStatusDLQ:
+      Type: "AWS::SQS::Queue"
+      Properties:
+        QueueName: loan-status-dlq-${self:provider.stage}
