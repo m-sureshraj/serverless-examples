@@ -1,0 +1,78 @@
+service: payment-service
+
+frameworkVersion: '3'
+
+provider:
+  name: aws
+  runtime: nodejs18.x
+  region: eu-west-2 # London
+  stage: ${opt:stage, 'dev'}
+  architecture: arm64 # use Graviton2 processor
+  logRetentionInDays: 7
+
+functions:
+  incomingEventHandler:
+    handler: src/incoming-event.handler
+    events:
+      - sqs:
+          arn: !GetAtt pysInboundQueue.Arn
+          batchSize: 1 # how many SQS messages can be included in a single Lambda invocation
+          filterPatterns:
+            - body: { eventType: ['orderPlaced', 'orderCancelled'] }
+
+resources:
+  Resources:
+    eventBusTopic:
+      Type: AWS::SNS::Topic
+      Properties:
+        TopicName: event-bus-topic-${self:provider.stage}
+
+    eventBusTopicSubscription:
+      Type: AWS::SNS::Subscription
+      Properties:
+        TopicArn: !Ref eventBusTopic
+        Endpoint: !GetAtt pysInboundQueue.Arn # the endpoint that receives notifications from the Topic
+        Protocol: sqs
+        RawMessageDelivery: true
+        # - By default, a subscriber receives every message published to the topic.
+        # - Filter policy allows subscribers to receive a subset of messages.
+        # - By default, the filter is applied on the messageAttributes.
+        # - The following policy ensures the subscriber gets notified only when the
+        #   published message's `messageAttributes` contains a property called sourceSystem,
+        #   and the value is order-service.
+        #   https://docs.aws.amazon.com/sns/latest/dg/sns-message-filtering.html
+        FilterPolicyScope: MessageAttributes # other option is `MessageBody`
+        FilterPolicy:
+          sourceSystem: ['order-service']
+
+    pysInboundQueue:
+      Type: AWS::SQS::Queue
+      Properties:
+        QueueName: pys-inbound-queue-${self:provider.stage}
+        RedrivePolicy:
+          deadLetterTargetArn: !GetAtt pysInboundQueueDLQ.Arn
+          maxReceiveCount: 3 # number of times a message is delivered to the source queue before being moved to the dead-letter queue
+
+    pysInboundQueueDLQ:
+      Type: AWS::SQS::Queue
+      Properties:
+        QueueName: pys-inbound-queue-dlq-${self:provider.stage}
+
+    pysInboundQueuePolicy:
+      Type: AWS::SQS::QueuePolicy
+      Properties:
+        Queues:
+          - !Ref pysInboundQueue
+        # this policy allows the SNS topic (eventBusTopic) in SNS to send message to pysInboundQueueDLQ
+        PolicyDocument: 
+          Version: "2012-10-17"
+          Statement:
+            Effect: Allow
+            Principal:
+              Service:
+                - sns.amazonaws.com # enables Amazon SNS service to assume the role.
+            Condition:
+              ArnEquals:
+                AWS:SourceArn: !Ref eventBusTopic
+            Action: sqs:SendMessage
+            Resource: !GetAtt pysInboundQueue.Arn
