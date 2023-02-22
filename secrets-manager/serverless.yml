@@ -1,0 +1,60 @@
+service: access-secret-manager
+frameworkVersion: '3'
+
+provider:
+  name: aws
+  runtime: nodejs18.x
+  region: eu-west-2
+  iam:
+    role:
+      statements:
+        - Effect: Allow
+          Action: 
+            - "secretsmanager:GetSecretValue"
+          Resource: !Ref randomCredentials
+
+custom:
+  SECRET_NAME: random-credentials
+
+functions:
+  secret-via-sdk:
+    handler: src/with-sdk.handler
+    environment:
+      SECRET_NAME: ${self:custom.SECRET_NAME}
+    events:
+      - httpApi:
+          path: /retrieve-secret-via-sdk
+          method: get
+
+  secret-via-lambda-extension:
+    handler: src/with-lambda-extension.handler
+    environment:
+      SECRET_NAME: ${self:custom.SECRET_NAME}
+      # https://docs.aws.amazon.com/secretsmanager/latest/userguide/retrieving-secrets_lambda.html#retrieving-secrets_lambda_env-var
+      PARAMETERS_SECRETS_EXTENSION_LOG_LEVEL: debug
+      SECRETS_MANAGER_TTL: 120 # cache the secret for 2 minutes
+    layers:
+      # list of ARNs = https://docs.aws.amazon.com/secretsmanager/latest/userguide/retrieving-secrets_lambda.html#retrieving-secrets_lambda_ARNs
+      - arn:aws:lambda:eu-west-2:133256977650:layer:AWS-Parameters-and-Secrets-Lambda-Extension:4  
+    events:
+      - httpApi:
+          path: /retrieve-secret-via-lambda-ext
+          method: get
+
+resources:
+  Resources:
+    randomCredentials:
+      Type: AWS::SecretsManager::Secret
+      Properties:
+        Name: ${self:custom.SECRET_NAME}
+        Description: "This secret has a dynamically generated secret password."
+        GenerateSecretString:
+          SecretStringTemplate: '{"username": "test-user"}'
+          GenerateStringKey: "password"
+          PasswordLength: 30
+          ExcludeCharacters: '"@/\'
+
+  Outputs:
+    RandomCredentials:
+      Value: !Ref randomCredentials
+      Description: ARN of the randomCredentials resource

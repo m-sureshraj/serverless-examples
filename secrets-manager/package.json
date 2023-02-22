@@ -1,0 +1,13 @@
+{
+  "name": "access-secret-manager",
+  "version": "1.0.0",
+  "description": "Demonstrates how to access Secrets Manager in a Lambda function using the SDK and the AWS Parameters and Secrets Lambda Extension",
+  "type": "module",
+  "scripts": {},
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "@aws-sdk/client-secrets-manager": "^3.272.0"
+  }
+}
