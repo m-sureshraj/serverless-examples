@@ -1,7 +1,7 @@
 {
   "name": "event-bus-via-sns",
   "version": "0.0.1",
-  "description": "",
+  "description": "Event Bus pattern in Serverless architectures using SNS, SQS, and Lambda",
   "type": "module",
   "scripts": {},
   "keywords": [],

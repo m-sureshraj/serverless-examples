@@ -41,9 +41,9 @@ resources:
         #   published message's `messageAttributes` contains a property called sourceSystem,
         #   and the value is order-service.
         #   https://docs.aws.amazon.com/sns/latest/dg/sns-message-filtering.html
-        FilterPolicyScope: MessageAttributes # other option is `MessageBody`
         FilterPolicy:
           sourceSystem: ['order-service']
+        FilterPolicyScope: MessageAttributes # other option is `MessageBody`
 
     pysInboundQueue:
       Type: AWS::SQS::Queue
@@ -76,3 +76,8 @@ resources:
                 AWS:SourceArn: !Ref eventBusTopic
             Action: sqs:SendMessage
             Resource: !GetAtt pysInboundQueue.Arn
+
+  Outputs:
+    SNSTopicArn:
+      Value: !Ref eventBusTopic
+      Description: ARN of the SNS topic
