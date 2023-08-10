@@ -1,18 +1,25 @@
 {
-  "name": "token-via-cookie",
-  "version": "1.0.0",
+  "name": "spa-with-cognito-auth-backend",
+  "version": "0.0.1",
   "description": "",
-  "main": "index.js",
   "type": "module",
   "scripts": {
     "dev": "sls offline start --reloadHandler",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "lint": "eslint '**/*.{js,cjs}'"
   },
+  "prettier": "@sureshraj/prettier-config",
   "keywords": [],
   "author": "",
   "license": "ISC",
   "devDependencies": {
     "@aws-sdk/client-cognito-identity-provider": "^3.370.0",
+    "@sureshraj/prettier-config": "^1.0.0",
+    "eslint": "^8.46.0",
+    "eslint-config-prettier": "^9.0.0",
+    "eslint-plugin-prettier": "^5.0.0",
+    "prettier": "^3.0.1",
+    "serverless": "^3.34.0",
     "serverless-esbuild": "^1.46.0",
     "serverless-export-env": "github:arabold/serverless-export-env",
     "serverless-offline": "^12.0.4"

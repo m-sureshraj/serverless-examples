@@ -27,7 +27,9 @@ provider:
         identitySource: $request.header.Cookie
 
 plugins:
+  # Needed for offline mode to be function. This plugin takes care of resolving CF intrinsic fns in the env variables during the offline mode
   - serverless-export-env
+
   - serverless-esbuild
   - serverless-offline
 
