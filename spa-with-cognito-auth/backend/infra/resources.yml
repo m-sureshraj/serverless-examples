@@ -1,0 +1,81 @@
+# https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-cognito-userpool.html
+UserPool:
+  Type: AWS::Cognito::UserPool
+  # none of these properties are required
+  Properties:
+    UserPoolName: ${self:custom.appPrefix}-user-pool
+    DeletionProtection: ACTIVE
+    MfaConfiguration: OFF
+    AccountRecoverySetting:
+      RecoveryMechanisms:
+       - Name: verified_email
+         Priority: 1
+    UsernameAttributes:
+      - email
+    AutoVerifiedAttributes:
+      - email
+    UserAttributeUpdateSettings:
+      AttributesRequireVerificationBeforeUpdate:
+        - email
+    Schema:
+      - Name: given_name
+        AttributeDataType: String
+        Mutable: true
+        Required: true
+      - Name: family_name
+        AttributeDataType: String
+        Mutable: true
+        Required: true
+      - Name: email
+        AttributeDataType: String
+        Mutable: true
+        Required: true
+      # The documentation states that custom attributes should be prefixed with 'custom:', but using it results in a double prefix, e.g., 'custom:custom:<name>'
+      - Name: company
+        AttributeDataType: String
+        Required: false
+        Mutable: true
+
+# https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-cognito-userpoolclient.html
+UserPoolClient:
+  Type: AWS::Cognito::UserPoolClient
+  Properties:
+    ClientName: ${self:custom.appPrefix}-user-pool-client
+    UserPoolId: !Ref UserPool
+    AccessTokenValidity: 1 # valid for 1 hour
+    AllowedOAuthFlows:
+      - code # should be exchanged for the access token
+    AllowedOAuthFlowsUserPoolClient: true
+
+    # email: grants access to the email and email_verified claims. Can only be requested with the openid scope.
+    # profile: grants access to all user attributes that are readable by the client. Can only be requested with the openid scope.
+    # openid: declares that you want to retrieve scopes that align with the OpenID Connect specification. Amazon Cognito doesn't return an ID token unless you request the openid scope.
+    # aws.cognito.signin.user.admin: grants access to cognito api operation that required access token, such as UpdateUserAttributes
+    AllowedOAuthScopes:
+      - email
+      - profile
+      - openid
+      - aws.cognito.signin.user.admin
+
+    # todo: access dynamically
+    CallbackURLs:
+      - http://localhost:3000/api/auth-callback # for dev
+      - https://d3pg57z7b5r1us.cloudfront.net/api/auth-callback
+
+    SupportedIdentityProviders:
+      - COGNITO
+
+    GenerateSecret: false
+    PreventUserExistenceErrors: ENABLED
+    EnableTokenRevocation: true
+
+    ExplicitAuthFlows:
+      - ALLOW_USER_SRP_AUTH
+      - ALLOW_REFRESH_TOKEN_AUTH
+
+# (hosted ui) https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-cognito-userpooldomain.html
+UserPoolDomain:
+  Type: AWS::Cognito::UserPoolDomain
+  Properties:
+    UserPoolId: !Ref UserPool
+    Domain: ${self:custom.cognitoUserPoolDomain}

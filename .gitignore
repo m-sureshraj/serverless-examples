@@ -5,6 +5,7 @@ jspm_packages
 # Serverless directories
 .serverless
 .idea
+.esbuild
 
 # OS
 .DS_Store
