@@ -1,0 +1,115 @@
+service: spa-with-cognito-auth
+frameworkVersion: '3'
+
+provider:
+  name: aws
+  runtime: nodejs18.x
+  region: eu-west-2
+  stage: ${opt:stage, 'dev'}
+  logRetentionInDays: 14
+  architecture: arm64
+  environment:
+    STAGE: ${self:provider.stage}
+    USER_POOL_ID: !Ref UserPool
+    USER_POOL_CLIENT_ID: !Ref UserPoolClient
+    COGNITO_DOMAIN: https://${self:custom.cognitoUserPoolDomain}.auth.${self:provider.region}.amazoncognito.com
+    APP_DOMAIN: 'https://d3pg57z7b5r1us.cloudfront.net' # fixme: read it via CF output
+  httpApi:
+    cors: ${self:custom.${self:provider.stage}}
+    authorizers:
+      customAuthorizer:
+        type: request
+        # In general, the function name can be anything, but serverless-offline plugin is failing to run
+        # if the name is different from the parent's function name i.e. `customAuthorizer`
+        functionName: customAuthorizer
+        enableSimpleResponses: true
+        payloadVersion: '2.0'
+        identitySource: $request.header.Cookie
+
+plugins:
+  # Needed for offline mode to be function. This plugin takes care of resolving CF intrinsic fns in the env variables during the offline mode
+  - serverless-export-env
+
+  - serverless-esbuild
+  - serverless-offline
+
+package:
+  individually: true
+
+custom:
+  appPrefix: ${self:service}-${self:provider.stage}
+  cognitoUserPoolDomain: 'spa-auth'
+
+  # cors is needed only for the offline mode to be function. i.e. FE http://localhost:5173 calls BE http://localhost:3000
+  dev:
+    allowCredentials: true
+    allowedOrigins: # required if the `allowCredentials` option set to true
+      - http://localhost:5173
+    allowedHeaders:
+      - Content-Type
+  prod: false
+
+  serverless-offline:
+    httpPort: 3000
+
+  # esbuild configs
+  esbuild:
+    minify: false
+    format: esm
+    keepOutputDirectory: true
+    outExtension:
+      # Package.json could not be included in the bundle, which describes the module system (ESM/CJS) to be used for running the file.
+      # Therefore, the .mjs extension is used to be executed as an ESM
+      .js: .mjs
+    exclude:
+      # Lambda runtime (nodejs18.x) provides AWS-SDK v3 libs natively, so no need to include them in the final bundle (zip)
+      - '@aws-sdk/client-cognito-identity-provider'
+
+functions:
+  getUserInfo:
+    description: '[private] retrieves user details from Cognito and returns to the caller'
+    handler: src/user-info.handler
+    events:
+      - httpApi:
+          path: /api/user-info
+          method: get
+          authorizer:
+            name: customAuthorizer
+
+  updateUserInfo:
+    description: '[private] updates user details in Cognito'
+    handler: src/update-user-info.handler
+    events:
+      - httpApi:
+          path: /api/user-info
+          method: post
+          authorizer:
+            name: customAuthorizer
+
+  authCallback:
+    description: '[public] Handles redirect callback after a user has successfully signed in'
+    handler: src/auth-callback.handler
+    events:
+      - httpApi:
+          path: /api/auth-callback
+          method: get
+
+  logout:
+    handler: src/logout.handler
+    description: '[public] Log user out'
+    events:
+      - httpApi:
+          path: /api/logout
+          method: get
+          authorizer:
+            name: customAuthorizer
+
+  customAuthorizer:
+    description: '[internal] Responsible for validating the access token, which is passed via cookie header'
+    handler: src/authorizer.handler
+
+resources:
+  Resources:
+    UserPool: ${file(./infra/resources.yml):UserPool}
+    UserPoolClient: ${file(./infra/resources.yml):UserPoolClient}
+    UserPoolDomain: ${file(./infra/resources.yml):UserPoolDomain}
