@@ -57,10 +57,10 @@ UserPoolClient:
       - openid
       - aws.cognito.signin.user.admin
 
-    # todo: access dynamically
+    # todo: access dev url dynamically
     CallbackURLs:
       - http://localhost:3000/api/auth-callback # for dev
-      - https://d3pg57z7b5r1us.cloudfront.net/api/auth-callback
+      - !Join ['', ['https://', !GetAtt CloudFrontDistribution.DomainName, '/api/auth-callback']]
 
     SupportedIdentityProviders:
       - COGNITO
@@ -79,3 +79,95 @@ UserPoolDomain:
   Properties:
     UserPoolId: !Ref UserPool
     Domain: ${self:custom.cognitoUserPoolDomain}
+
+# Host static assets on S3
+
+# https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-s3-bucket.html
+StaticAssetsBucket:
+  Type: AWS::S3::Bucket
+  Properties:
+    BucketName: ${self:custom.appPrefix}-website-assets
+    PublicAccessBlockConfiguration:
+      # Enables public assess to the bucket.
+      BlockPublicAcls: false
+    WebsiteConfiguration:
+      IndexDocument: 'index.html'
+      ErrorDocument: 'index.html'
+
+# https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-s3-policy.html
+BucketPolicy:
+  Type: 'AWS::S3::BucketPolicy'
+  Properties:
+    Bucket: !Ref StaticAssetsBucket
+    PolicyDocument:
+      Version: '2012-10-17'
+      Statement:
+        - Sid: PublicReadForGetBucketObjects
+          Effect: Allow
+          Principal: '*'
+          Action: 's3:GetObject'
+          Resource: !Join ['', ['arn:aws:s3:::', !Ref StaticAssetsBucket, '/*']]
+
+# CloudFront distribution
+
+# https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-cloudfront-distribution.html
+CloudFrontDistribution:
+  Type: 'AWS::CloudFront::Distribution'
+  Properties:
+    DistributionConfig:
+      Enabled: true
+      DefaultRootObject: 'index.html'
+      PriceClass: 'PriceClass_100' # Use only North America and Europe region for the distribution (low price)
+      Origins:
+        # DomainName can't contain a ':' in it, so split it to get the url without http/https part
+        - DomainName: !Select [1, !Split ["//", !GetAtt StaticAssetsBucket.WebsiteURL]]
+          Id: 'static-assets-s3-bucket'
+          OriginShield:
+            Enabled: false # controls additional caching layer, no need for a demo application
+          CustomOriginConfig:
+            OriginProtocolPolicy: 'http-only'
+
+        # `HttpApi` is the logical id of the api gateway resource that was created as part of Serverless framework
+        - DomainName: !Join ['.', [!Ref HttpApi, 'execute-api', '${self:provider.region}', 'amazonaws.com']]
+          Id: 'api-gateway'
+          OriginShield:
+            Enabled: false
+          CustomOriginConfig:
+            OriginProtocolPolicy: 'https-only'
+
+      CacheBehaviors:
+        # do not cache the request to the `api/*`
+        - PathPattern: '/api/*'
+          ViewerProtocolPolicy: 'redirect-to-https'
+          AllowedMethods: [GET, HEAD, OPTIONS, PUT, PATCH, POST, DELETE]
+          CachedMethods: [GET, HEAD]
+          Compress: true
+          # the target to which this cache behavior applies
+          TargetOriginId: 'api-gateway'
+
+          # id of the aws managed caching disabled policy (Managed-CachingDisabled). Recommended for api-gateway
+          CachePolicyId: '4135ea2d-6df8-44a3-9df3-4b5a84be39ad'
+
+          # managed origin request policy (Managed-AllViewerExceptHostHeader).
+          # Policy to forward all parameters in viewer requests except for the Host header
+          # recommended for api-gateway without custom domains
+          OriginRequestPolicyId: 'b689b0a8-53d0-40ab-baf2-68738e2966ac'
+
+        # do not cache the request to the `index.html`
+        - PathPattern: '/index.html'
+          ViewerProtocolPolicy: 'redirect-to-https'
+          AllowedMethods: [GET, HEAD]
+          TargetOriginId: 'static-assets-s3-bucket'
+          Compress: true
+          CachePolicyId: '4135ea2d-6df8-44a3-9df3-4b5a84be39ad'
+
+      # path pattern can not be defined for the default cache behavior. It matches all requests.
+      DefaultCacheBehavior:
+        ViewerProtocolPolicy: 'redirect-to-https'
+        AllowedMethods: [GET, HEAD]
+        Compress: true
+        TargetOriginId: 'static-assets-s3-bucket'
+
+        # Managed-CachingOptimized policy id
+        # Policy with caching enabled. Supports Gzip and Brotli compression
+        CachePolicyId: '658327ea-f89d-4fab-a63d-7e88639e58f6'
