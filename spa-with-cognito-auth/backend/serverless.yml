@@ -13,9 +13,9 @@ provider:
     USER_POOL_ID: !Ref UserPool
     USER_POOL_CLIENT_ID: !Ref UserPoolClient
     COGNITO_DOMAIN: https://${self:custom.cognitoUserPoolDomain}.auth.${self:provider.region}.amazoncognito.com
-    APP_DOMAIN: 'https://d3pg57z7b5r1us.cloudfront.net' # fixme: read it via CF output
+    APP_DOMAIN: !Join ['', ['https://', !GetAtt CloudFrontDistribution.DomainName]]
   httpApi:
-    cors: ${self:custom.${self:provider.stage}}
+    cors: ${self:custom.cors.${self:provider.stage}}
     authorizers:
       customAuthorizer:
         type: request
@@ -27,7 +27,7 @@ provider:
         identitySource: $request.header.Cookie
 
 plugins:
-  # Needed for offline mode to be function. This plugin takes care of resolving CF intrinsic fns in the env variables during the offline mode
+  # Needed for offline mode to be function. This plugin takes care of resolving CF intrinsic fns in the env variables when starting the offline mode
   - serverless-export-env
 
   - serverless-esbuild
@@ -41,13 +41,14 @@ custom:
   cognitoUserPoolDomain: 'spa-auth'
 
   # cors is needed only for the offline mode to be function. i.e. FE http://localhost:5173 calls BE http://localhost:3000
-  dev:
-    allowCredentials: true
-    allowedOrigins: # required if the `allowCredentials` option set to true
-      - http://localhost:5173
-    allowedHeaders:
-      - Content-Type
-  prod: false
+  cors:
+    dev:
+      allowCredentials: true
+      allowedOrigins: # required if the `allowCredentials` option set to true
+        - http://localhost:5173
+      allowedHeaders:
+        - Content-Type
+    prod: false
 
   serverless-offline:
     httpPort: 3000
@@ -110,6 +111,14 @@ functions:
 
 resources:
   Resources:
+    # Cognito userPool
     UserPool: ${file(./infra/resources.yml):UserPool}
     UserPoolClient: ${file(./infra/resources.yml):UserPoolClient}
     UserPoolDomain: ${file(./infra/resources.yml):UserPoolDomain}
+
+    # S3 bucket to host front-end (static assets)
+    StaticAssetsBucket: ${file(./infra/resources.yml):StaticAssetsBucket}
+    BucketPolicy: ${file(./infra/resources.yml):BucketPolicy}
+
+    # CloudFront distribution
+    CloudFrontDistribution: ${file(./infra/resources.yml):CloudFrontDistribution}
