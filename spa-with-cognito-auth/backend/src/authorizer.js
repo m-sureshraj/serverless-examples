@@ -1,11 +1,11 @@
 import { CognitoJwtVerifier } from 'aws-jwt-verify';
 
-const { USER_POOL_ID, USER_POOL_CLIENT_ID } = process.env;
+import { config } from './lib/config.js';
 
 const verifier = CognitoJwtVerifier.create({
-  userPoolId: USER_POOL_ID,
+  userPoolId: config.userPoolId,
   tokenUse: 'access',
-  clientId: USER_POOL_CLIENT_ID,
+  clientId: config.userPoolClientId,
 });
 
 function getAccessTokenFromCookies(cookiesArray = []) {

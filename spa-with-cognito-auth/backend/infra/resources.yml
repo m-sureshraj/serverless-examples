@@ -57,7 +57,6 @@ UserPoolClient:
       - openid
       - aws.cognito.signin.user.admin
 
-    # todo: access dev url dynamically
     CallbackURLs:
       - http://localhost:3000/api/auth-callback # for dev
       - !Join ['', ['https://', !GetAtt CloudFrontDistribution.DomainName, '/api/auth-callback']]
@@ -120,7 +119,7 @@ CloudFrontDistribution:
       PriceClass: 'PriceClass_100' # Use only North America and Europe region for the distribution (low price)
       Origins:
         # DomainName can't contain a ':' in it, so split it to get the url without http/https part
-        - DomainName: !Select [1, !Split ["//", !GetAtt StaticAssetsBucket.WebsiteURL]]
+        - DomainName: !Select [1, !Split ['//', !GetAtt StaticAssetsBucket.WebsiteURL]]
           Id: 'static-assets-s3-bucket'
           OriginShield:
             Enabled: false # controls additional caching layer, no need for a demo application
@@ -171,3 +170,12 @@ CloudFrontDistribution:
         # Managed-CachingOptimized policy id
         # Policy with caching enabled. Supports Gzip and Brotli compression
         CachePolicyId: '658327ea-f89d-4fab-a63d-7e88639e58f6'
+
+Outputs:
+  CloudFrontDistribution:
+    Value: !Join ['', ['https://', !GetAtt CloudFrontDistribution.DomainName]]
+    Description: Application domain (CloudFront URL)
+
+  UserPoolClient:
+    Value: !Ref UserPoolClient
+    Description: Cognito user pool client ID

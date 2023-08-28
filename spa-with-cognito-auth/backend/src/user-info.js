@@ -1,8 +1,6 @@
 import { getAccessTokenFromReqContext } from './lib/util.js';
 import { withErrorHandler, HttpError } from './lib/http-error';
-
-const cognitoDomain = process.env.COGNITO_DOMAIN;
-const userInfoUrl = `${cognitoDomain}/oauth2/userInfo`;
+import { config } from './lib/config.js';
 
 export const getUserInfo = async event => {
   const accessToken = getAccessTokenFromReqContext(event);
@@ -10,7 +8,7 @@ export const getUserInfo = async event => {
     Authorization: `Bearer ${accessToken}`,
   };
 
-  const response = await fetch(userInfoUrl, {
+  const response = await fetch(config.userInfoUrl, {
     method: 'GET',
     headers: headers,
   });

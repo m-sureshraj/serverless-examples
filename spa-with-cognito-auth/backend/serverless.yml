@@ -122,3 +122,6 @@ resources:
 
     # CloudFront distribution
     CloudFrontDistribution: ${file(./infra/resources.yml):CloudFrontDistribution}
+
+  # outputs
+  Outputs: ${file(./infra/resources.yml):Outputs}

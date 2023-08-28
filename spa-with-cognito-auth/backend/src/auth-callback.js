@@ -1,16 +1,9 @@
 import querystring from 'node:querystring';
 
 import { BadRequestError } from './lib/http-error';
+import { config } from './lib/config.js';
 
-const clientId = process.env.USER_POOL_CLIENT_ID;
-const cognitoDomain = process.env.COGNITO_DOMAIN;
-
-const tokenUrl = `${cognitoDomain}/oauth2/token`;
-const appDomain = process.env.IS_OFFLINE
-  ? 'http://localhost:5173'
-  : process.env.APP_DOMAIN;
-const apiDomain = process.env.IS_OFFLINE ? 'http://localhost:3000' : appDomain;
-const authCallbackUrl = `${apiDomain}/api/auth-callback`;
+const { appDomain } = config;
 
 const headers = {
   'Content-Type': 'application/x-www-form-urlencoded',
@@ -24,13 +17,13 @@ export const handler = async event => {
 
   const qs = querystring.stringify({
     grant_type: 'authorization_code',
-    redirect_uri: authCallbackUrl,
+    redirect_uri: config.authCallbackUrl,
     code: code,
-    client_id: clientId,
+    client_id: config.userPoolClientId,
   });
 
   console.log(`Exchanging code: ${code} for token`);
-  const response = await fetch(tokenUrl, {
+  const response = await fetch(config.tokenUrl, {
     method: 'POST',
     headers: headers,
     body: qs,
