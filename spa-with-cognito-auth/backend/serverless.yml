@@ -87,6 +87,14 @@ functions:
           authorizer:
             name: customAuthorizer
 
+  login:
+    description: '[public] redirects the user to the Cognito hosted login page'
+    handler: src/login.handler
+    events:
+      - httpApi:
+          path: /api/login
+          method: get
+
   authCallback:
     description: '[public] Handles redirect callback after a user has successfully signed in'
     handler: src/auth-callback.handler

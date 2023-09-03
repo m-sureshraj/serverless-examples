@@ -16,6 +16,7 @@ export const config = {
   authCallbackUrl: `${apiDomain}/api/auth-callback`,
 
   // cognito oauth endpoints
+  loginUrl: `${COGNITO_DOMAIN}/login`,
   tokenUrl: `${COGNITO_DOMAIN}/oauth2/token`,
   userInfoUrl: `${COGNITO_DOMAIN}/oauth2/userInfo`,
 };
