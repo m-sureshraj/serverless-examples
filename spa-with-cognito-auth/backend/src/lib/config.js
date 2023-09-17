@@ -17,6 +17,7 @@ export const config = {
 
   // cognito oauth endpoints
   loginUrl: `${COGNITO_DOMAIN}/login`,
+  signupUrl: `${COGNITO_DOMAIN}/signup`,
   tokenUrl: `${COGNITO_DOMAIN}/oauth2/token`,
   userInfoUrl: `${COGNITO_DOMAIN}/oauth2/userInfo`,
 };
