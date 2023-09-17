@@ -1,19 +1,18 @@
-import { useSearchParams } from 'react-router-dom';
+import { Code } from '@mantine/core';
 
 import { useUser } from '../userContext.tsx';
 
 export function Home() {
   const { user } = useUser();
-  const [searchParams] = useSearchParams();
-  const isLoginFailed = searchParams.get('error') === 'auth_failed';
 
   return (
     <>
       <h2>Welcome to the App</h2>
+      <p>The following code block displays all of your details stored in AWS Cognito.</p>
 
-      {isLoginFailed && <p>An error occurred while logging you in. Try again!</p>}
-
-      <pre>{JSON.stringify(user, null, 2)}</pre>
+      <Code block color="teal" p={20} fz={14}>
+        {JSON.stringify(user, null, 2)}
+      </Code>
     </>
   );
 }

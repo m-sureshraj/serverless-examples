@@ -1,10 +1,19 @@
 import React, { FormEvent, useState } from 'react';
+import { TextInput, Box, Button, createStyles, rem, Notification } from '@mantine/core';
+import { IconCheck, IconX } from '@tabler/icons-react';
 
 import { updateUserProfile } from '../service.ts';
 import { useUser } from '../userContext.tsx';
 import { User } from '../types.ts';
 
+const useStyles = createStyles(() => ({
+  input: {
+    marginBottom: rem(20),
+  },
+}));
+
 export function Profile() {
+  const { classes } = useStyles();
   const userContext = useUser();
   // This component loads only after the user has logged in, so a user always exists
   const user = userContext.user as User;
@@ -46,61 +55,72 @@ export function Profile() {
   }
 
   return (
-    <>
+    <Box w={'50%'}>
       <h2>Profile Page</h2>
 
-      {error && <p>{error}</p>}
-      {statusMessage && <p>{statusMessage}</p>}
+      {error && (
+        <Notification
+          icon={<IconX size="1.1rem" />}
+          color="red"
+          withBorder
+          mb={20}
+          onClose={() => setError(null)}
+        >
+          {error}
+        </Notification>
+      )}
+
+      {statusMessage && (
+        <Notification
+          color="green"
+          icon={<IconCheck size="1.2rem" />}
+          withBorder
+          mb={20}
+          onClose={() => setStatusMessage('')}
+        >
+          {statusMessage}
+        </Notification>
+      )}
 
       <form onSubmit={handleSubmit}>
-        <div>
-          <label htmlFor="given_name">Given Name</label>
-          <br />
-          <input
-            id="given_name"
-            name="given_name"
-            type="text"
-            required
-            pattern=".*\S.*"
-            value={formData.given_name}
-            onChange={handleInputChange}
-          />
-        </div>
+        <TextInput
+          label="Given Name"
+          value={formData.given_name}
+          onChange={handleInputChange}
+          id="given_name"
+          name="given_name"
+          pattern=".*\S.*"
+          required
+          className={classes.input}
+        />
 
-        <br />
-        <div>
-          <label htmlFor="family_name">Family Name (Lastname)</label>
-          <br />
-          <input
-            id="family_name"
-            name="family_name"
-            required
-            type="text"
-            pattern=".*\S.*"
-            value={formData.family_name}
-            onChange={handleInputChange}
-          />
-        </div>
+        <TextInput
+          label="Family Name (Lastname)"
+          id="family_name"
+          name="family_name"
+          required
+          type="text"
+          pattern=".*\S.*"
+          value={formData.family_name}
+          onChange={handleInputChange}
+          className={classes.input}
+        />
 
-        <br />
-        <div>
-          <label htmlFor="custom:company">Company</label>
-          <br />
-          <input
-            id="custom:company"
-            name="custom:company"
-            type="text"
-            pattern=".*\S.*"
-            value={formData['custom:company']}
-            onChange={handleInputChange}
-          />
-        </div>
+        <TextInput
+          label="Company"
+          id="custom:company"
+          name="custom:company"
+          type="text"
+          pattern=".*\S.*"
+          value={formData['custom:company']}
+          onChange={handleInputChange}
+          className={classes.input}
+        />
 
-        <br />
-        <button type="submit" disabled={submitting}>
+        <Button type="submit" loading={submitting} color="violet">
           Update Profile
-        </button>
+        </Button>
       </form>
-    </>
+    </Box>
   );
 }
