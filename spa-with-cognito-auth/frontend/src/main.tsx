@@ -6,7 +6,6 @@ import { MantineProvider } from '@mantine/core';
 import { UserProvider } from './userContext.tsx';
 
 import App from './App.tsx';
-// import './index.css'
 
 const rootElement = document.getElementById('root') as HTMLElement;
 
