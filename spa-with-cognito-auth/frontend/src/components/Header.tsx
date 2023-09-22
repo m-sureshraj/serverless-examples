@@ -9,6 +9,8 @@ import {
   createStyles,
   rem,
   Skeleton,
+  Box,
+  Anchor,
 } from '@mantine/core';
 import { useNavigate, Link } from 'react-router-dom';
 import { IconLogout, IconChevronDown, IconUser } from '@tabler/icons-react';
@@ -21,6 +23,12 @@ const useStyles = createStyles(() => ({
     justifyContent: 'space-between',
     alignItems: 'center',
     height: '100%',
+  },
+
+  logo: {
+    '&:hover': {
+      textDecoration: 'none',
+    },
   },
 }));
 
@@ -35,7 +43,11 @@ export function Header() {
   return (
     <BaseHeader height={60}>
       <Container className={classes.header}>
-        <Link to="/">Logo</Link>
+        <Box fz={34}>
+          <Anchor component={Link} to="/" className={classes.logo}>
+            😸
+          </Anchor>
+        </Box>
 
         {!user ? (
           <Skeleton animate={false} height={8} width={100} />
