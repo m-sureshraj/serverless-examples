@@ -59,7 +59,8 @@ jobs:
       - name: configure aws credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
-          role-to-assume: arn:aws:iam::552686430014:role/github-actions-ci-cd-deployment-role
+          mask-aws-account-id: true
+          role-to-assume: ${{ secrets.AWS_GITHUB_ACTIONS_ROLE_ARN }}
           role-session-name: github-action-sls-examples
           aws-region: ${{ env.AWS_REGION }}
 
