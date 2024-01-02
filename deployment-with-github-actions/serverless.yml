@@ -1,0 +1,18 @@
+service: deployment-with-github-actions
+frameworkVersion: '3'
+
+provider:
+  name: aws
+  runtime: nodejs20.x
+  region: eu-west-2
+  stage: ${opt:stage, 'dev'}
+  logRetentionInDays: 14
+  architecture: arm64
+
+functions:
+  api:
+    handler: index.handler
+    events:
+      - httpApi:
+          path: /
+          method: get
