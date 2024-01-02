@@ -5,21 +5,17 @@ on:
     branches:
       - main # run the workflow when a push is made to the main branch
     paths:
-      - deployment-with-github-actions
+      - 'deployment-with-github-actions/**'
 
   pull_request:
     branches:
       - main # run the workflow when the target branch of the PR is main
     paths:
-      - deployment-with-github-actions
+      - 'deployment-with-github-actions/**'
 
 permissions:
   id-token: write # This is required for requesting the JWT
   contents: read  # This is required for actions/checkout
-
-defaults:
-  run:
-    working-directory: ./deployment-with-github-actions
 
 env:
   AWS_REGION : 'eu-west-2'
@@ -37,9 +33,11 @@ jobs:
             node-version: 18
 
         - name: Install dependencies
+          working-directory: ./deployment-with-github-actions
           run: npm ci
 
         - name: Unit test
+          working-directory: ./deployment-with-github-actions
           run: npm run test
 
   deploy:
@@ -53,9 +51,9 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 18
-        run: node -v
 
       - name: Install dependencies
+        working-directory: ./deployment-with-github-actions
         run: npm ci
 
       - name: configure aws credentials
@@ -66,11 +64,12 @@ jobs:
           aws-region: ${{ env.AWS_REGION }}
 
       - name: versions
+        working-directory: ./deployment-with-github-actions
         run: | 
           pwd
           node -v 
           aws --version
-          sls --version
 
       - name: deploy
+        working-directory: ./deployment-with-github-actions
         run: npm run deploy:dev
