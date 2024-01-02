@@ -1,0 +1,19 @@
+{
+  "name": "deployment-with-github-actions",
+  "version": "1.0.0",
+  "description": "",
+  "type": "module",
+  "scripts": {
+    "deploy:dev": "sls deploy --stage dev",
+    "sls-version": "sls --version",
+    "test": "echo \"no test specified\""
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "serverless": "^3.39.0",
+    "serverless-better-credentials": "^2.0.0",
+    "serverless-esbuild": "^1.52.1"
+  }
+}

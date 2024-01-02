@@ -10,7 +10,7 @@ UserPool:
       RecoveryMechanisms:
        - Name: verified_email
          Priority: 1
-    UsernameAttributes:
+    UsernameAttributes: # which attributes should be used as username
       - email
     AutoVerifiedAttributes:
       - email
