@@ -25,10 +25,10 @@ jobs:
       - name: print the branch name
         #        working-directory: ./deployment-with-github-actions
         run: |
-          echo ${{ GITHUB_BASE_REF }}
-          echo ${{ GITHUB_HEAD_REF }}
-          echo ${{ GITHUB_REF }}
-          echo ${{ GITHUB_REF_NAME }}
+          echo "GITHUB_BASE_REF - ${{ github.base_ref }}"
+          echo "GITHUB_HEAD_REF - ${{ github.head_ref }}"
+          echo "GITHUB_REF - ${{ github.ref }}"
+          echo "GITHUB_REF_NAME - ${{ github.ref_name }}"
 
 #      - name: Unit test
 #        working-directory: ./deployment-with-github-actions
