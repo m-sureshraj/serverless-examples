@@ -4,8 +4,9 @@
   "description": "",
   "type": "module",
   "scripts": {
-    "deploy:dev": "serverless deploy --stage dev",
-    "test": "echo \"no test specified\""
+    "deploy:dev": "sls deploy --stage dev",
+    "test": "echo \"no test specified\"",
+    "package": "sls package"
   },
   "keywords": [],
   "author": "",

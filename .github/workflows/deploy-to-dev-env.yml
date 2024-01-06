@@ -3,9 +3,9 @@ name: deploy the selected branch to development (dev) deployment
 on:
   workflow_dispatch:
 
-#permissions:
-#  id-token: write # This is required for requesting the JWT
-#  contents: read  # This is required for actions/checkout
+permissions:
+  id-token: write # This is required for requesting the JWT
+  contents: read  # This is required for actions/checkout
 
 env:
   AWS_REGION : 'eu-west-2'
@@ -14,57 +14,60 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      #      - name: ⬇️ Checkout repo
-      #        uses: actions/checkout@v4
-      #
-      #      - name: ⎔ Setup node
-      #        uses: actions/setup-node@v4
-      #        with:
-      #          node-version: 18
+      - name: ⬇️ Checkout repo
+        uses: actions/checkout@v4
 
-      - name: print the branch name
-        #        working-directory: ./deployment-with-github-actions
+      - name: ⎔ Setup node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+          cache-dependency-path: ./deployment-with-github-actions/package-lock.json
+
+      - name: Install dependencies
+        working-directory: ./deployment-with-github-actions
+        run: npm ci
+
+      - name: Unit test
+        working-directory: ./deployment-with-github-actions
+        run: npm run test
+
+      - name: Package
+        working-directory: ./deployment-with-github-actions
+        run: npm run package
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Git clone the repository
+        uses: actions/checkout@v4
+
+      - name: ⎔ Setup node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install dependencies
+        working-directory: ./deployment-with-github-actions
+        run: npm ci
+
+      - name: configure aws credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          mask-aws-account-id: true
+          role-to-assume: ${{ secrets.AWS_GITHUB_ACTIONS_ROLE_ARN }}
+          role-session-name: github-action-sls-examples
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: versions
+        working-directory: ./deployment-with-github-actions
         run: |
-          echo "GITHUB_BASE_REF - ${{ github.base_ref }}"
-          echo "GITHUB_HEAD_REF - ${{ github.head_ref }}"
-          echo "GITHUB_REF - ${{ github.ref }}"
-          echo "GITHUB_REF_NAME - ${{ github.ref_name }}"
+          echo "printing working directory - $(pwd)"
+          echo "node version - $(node -v)"
+          echo "aws cli version - $(aws --version)"
+          echo "sls version - $(./node_modules/.bin/sls --version)"
 
-#      - name: Unit test
-#        working-directory: ./deployment-with-github-actions
-#        run: npm run test
-
-#  deploy:
-#    needs: build
-#    runs-on: ubuntu-latest
-#    steps:
-#      - name: Git clone the repository
-#        uses: actions/checkout@v4
-#
-#      - name: ⎔ Setup node
-#        uses: actions/setup-node@v4
-#        with:
-#          node-version: 18
-#
-#      - name: Install dependencies
-#        working-directory: ./deployment-with-github-actions
-#        run: npm ci
-#
-#      - name: configure aws credentials
-#        uses: aws-actions/configure-aws-credentials@v4
-#        with:
-#          mask-aws-account-id: true
-#          role-to-assume: ${{ secrets.AWS_GITHUB_ACTIONS_ROLE_ARN }}
-#          role-session-name: github-action-sls-examples
-#          aws-region: ${{ env.AWS_REGION }}
-#
-#      - name: versions
-#        working-directory: ./deployment-with-github-actions
-#        run: |
-#          pwd
-#          node -v
-#          aws --version
-#
 #      - name: deploy
 #        working-directory: ./deployment-with-github-actions
-#        run: npm run deploy:dev
+#        run: ./node_modules/.bin/sls deploy

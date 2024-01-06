@@ -3,6 +3,7 @@ frameworkVersion: '3'
 
 provider:
   name: aws
+  deploymentMethod: direct
   runtime: nodejs20.x
   region: eu-west-2
   stage: ${opt:stage, 'dev'}
