@@ -1,0 +1,70 @@
+name: deploy the selected branch to development (dev) deployment
+
+on:
+  workflow_dispatch:
+
+#permissions:
+#  id-token: write # This is required for requesting the JWT
+#  contents: read  # This is required for actions/checkout
+
+env:
+  AWS_REGION : 'eu-west-2'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      #      - name: ⬇️ Checkout repo
+      #        uses: actions/checkout@v4
+      #
+      #      - name: ⎔ Setup node
+      #        uses: actions/setup-node@v4
+      #        with:
+      #          node-version: 18
+
+      - name: print the branch name
+        #        working-directory: ./deployment-with-github-actions
+        run: |
+          echo "GITHUB_BASE_REF" ${{ github.GITHUB_BASE_REF }}
+          echo "GITHUB_HEAD_REF" ${{ GITHUB_HEAD_REF }}
+          echo "GITHUB_REF" ${{ GITHUB_REF }}
+          echo "GITHUB_REF_NAME" ${{ GITHUB_REF_NAME }}
+
+#      - name: Unit test
+#        working-directory: ./deployment-with-github-actions
+#        run: npm run test
+
+#  deploy:
+#    needs: build
+#    runs-on: ubuntu-latest
+#    steps:
+#      - name: Git clone the repository
+#        uses: actions/checkout@v4
+#
+#      - name: ⎔ Setup node
+#        uses: actions/setup-node@v4
+#        with:
+#          node-version: 18
+#
+#      - name: Install dependencies
+#        working-directory: ./deployment-with-github-actions
+#        run: npm ci
+#
+#      - name: configure aws credentials
+#        uses: aws-actions/configure-aws-credentials@v4
+#        with:
+#          mask-aws-account-id: true
+#          role-to-assume: ${{ secrets.AWS_GITHUB_ACTIONS_ROLE_ARN }}
+#          role-session-name: github-action-sls-examples
+#          aws-region: ${{ env.AWS_REGION }}
+#
+#      - name: versions
+#        working-directory: ./deployment-with-github-actions
+#        run: |
+#          pwd
+#          node -v
+#          aws --version
+#
+#      - name: deploy
+#        working-directory: ./deployment-with-github-actions
+#        run: npm run deploy:dev
