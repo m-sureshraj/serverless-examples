@@ -73,4 +73,5 @@ jobs:
 
       - name: deploy
         working-directory: ./deployment-with-github-actions
-        run: npm run deploy:dev
+#        run: npm run deploy:dev
+        run: echo "this is a dry run..."
