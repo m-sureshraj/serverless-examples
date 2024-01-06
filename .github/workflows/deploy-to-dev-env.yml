@@ -25,7 +25,7 @@ jobs:
       - name: print the branch name
         #        working-directory: ./deployment-with-github-actions
         run: |
-          echo "GITHUB_BASE_REF" ${{ github.GITHUB_BASE_REF }}
+          echo "GITHUB_BASE_REF" ${{ GITHUB_BASE_REF }}
           echo "GITHUB_HEAD_REF" ${{ GITHUB_HEAD_REF }}
           echo "GITHUB_REF" ${{ GITHUB_REF }}
           echo "GITHUB_REF_NAME" ${{ GITHUB_REF_NAME }}
