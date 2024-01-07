@@ -1,25 +1,29 @@
-name: deploy the selected branch to the development (dev) environment
+# This manual workflow allows us to deploy an example project to the development environment.
+# It must be triggered manually and requires the name of the example project as its input.
+# It uses AWS OpenID Connect (OIDC) for secure authenticate with AWS to deploy the necessary resources.
+
+name: deploy an example project to the development environment
 
 on:
   workflow_dispatch:
     inputs:
       directory_name:
-        description: 'project directory name'
+        description: 'Which example project do you want to deploy'
         required: true
 
 permissions:
-  id-token: write # This is required for requesting the JWT
   contents: read  # This is required for actions/checkout
 
 env:
   AWS_REGION : 'eu-west-2'
 
+defaults:
+  run:
+    working-directory: ${{ github.event.inputs.directory_name }}
+
 jobs:
   build:
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: ${{ github.event.inputs.directory_name }}
     steps:
       - name: ⬇️ Checkout repo
         uses: actions/checkout@v4
@@ -41,6 +45,8 @@ jobs:
     needs: build #  This job depends on the build job.
     runs-on: ubuntu-latest
     environment: development
+    permissions:
+      id-token: write # Fetch an OpenID Connect (OIDC) token.
     steps:
       - name: Git clone the repository
         uses: actions/checkout@v4
@@ -63,7 +69,6 @@ jobs:
           aws-region: ${{ env.AWS_REGION }}
 
       - name: versions
-        working-directory: ./deployment-with-github-actions
         run: |
           echo "printing working directory - $(pwd)"
           echo "node version - $(node -v)"
@@ -71,5 +76,4 @@ jobs:
           echo "sls version - $(./node_modules/.bin/sls --version)"
 
       - name: deploy
-        working-directory: ./deployment-with-github-actions
         run: npm run deploy:dev
