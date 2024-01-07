@@ -1,5 +1,4 @@
-# This workflow is associated with the `/deployment-with-github-actions` example directory.
-# It demonstrates the use of GH actions to build and
+# This workflow is associated with the `/deployment-with-github-actions` project directory.
 
 name: example dir `deployment-with-github-actions` deployment
 
@@ -35,7 +34,3 @@ jobs:
         - name: Unit test
           working-directory: ./deployment-with-github-actions
           run: npm run test
-
-        - name: Package
-          working-directory: ./deployment-with-github-actions
-          run: npm run package

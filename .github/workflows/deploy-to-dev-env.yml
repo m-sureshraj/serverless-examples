@@ -2,6 +2,10 @@ name: deploy the selected branch to development (dev) deployment
 
 on:
   workflow_dispatch:
+    inputs:
+      directory_name:
+        description: 'project directory name'
+        required: true
 
 permissions:
   id-token: write # This is required for requesting the JWT
@@ -13,6 +17,9 @@ env:
 jobs:
   build:
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ${{ github.event.inputs.directory_name }}
     steps:
       - name: ⬇️ Checkout repo
         uses: actions/checkout@v4
@@ -21,19 +28,19 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 20
-          cache: 'npm'
-          cache-dependency-path: ./deployment-with-github-actions/package-lock.json
+#          cache: 'npm'
+#          cache-dependency-path: ./deployment-with-github-actions/package-lock.json
 
       - name: Install dependencies
-        working-directory: ./deployment-with-github-actions
+#        working-directory: ./deployment-with-github-actions
         run: npm ci
 
       - name: Unit test
-        working-directory: ./deployment-with-github-actions
+#        working-directory: ./deployment-with-github-actions
         run: npm run test
 
       - name: Package
-        working-directory: ./deployment-with-github-actions
+#        working-directory: ./deployment-with-github-actions
         run: npm run package
 
   deploy:
@@ -68,6 +75,7 @@ jobs:
           echo "aws cli version - $(aws --version)"
           echo "sls version - $(./node_modules/.bin/sls --version)"
 
-#      - name: deploy
-#        working-directory: ./deployment-with-github-actions
+      - name: deploy
+        working-directory: ./deployment-with-github-actions
+        run: echo "dry run..."
 #        run: ./node_modules/.bin/sls deploy
