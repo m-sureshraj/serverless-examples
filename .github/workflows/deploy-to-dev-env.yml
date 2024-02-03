@@ -74,4 +74,5 @@ jobs:
           echo "sls version - $(./node_modules/.bin/sls --version)"
 
       - name: deploy
-        run: npm run deploy:dev
+#        run: npm run deploy:dev
+        run: echo "aws stage - ${{ vars.AWS_REGION }}"

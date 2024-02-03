@@ -33,6 +33,4 @@ jobs:
 
         - name: Unit test
           working-directory: ./deployment-with-github-actions
-          run: |
-            npm run test
-            echo "${{ vars.AWS_REGION }}"
+          run: npm run test
