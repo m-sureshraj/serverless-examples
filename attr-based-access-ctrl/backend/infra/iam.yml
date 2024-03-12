@@ -1,0 +1,52 @@
+AuthenticatedRole:
+  Type: AWS::IAM::Role
+  Properties:
+    RoleName: ${self:custom.appPrefix}-authenticated
+
+    # This trust policy determines who can assume this role
+    AssumeRolePolicyDocument:
+      Version: "2012-10-17"
+      Statement:
+        - Effect: Allow
+          Principal:
+            Federated: "cognito-identity.amazonaws.com"
+          Action:
+            - "sts:AssumeRoleWithWebIdentity"
+            - "sts:TagSession" # required for using `PrincipalTag` condition key in policy
+          Condition:
+            StringEquals:
+              "cognito-identity.amazonaws.com:aud": !Ref IdentityPool
+            "ForAnyValue:StringLike":
+              "cognito-identity.amazonaws.com:amr": "authenticated"
+
+    Policies:
+      - PolicyName: ${self:custom.appPrefix}-authenticated-user-policy
+        PolicyDocument:
+          Version: "2012-10-17"
+          Statement:
+            # Authenticated users can access this API endpoint to become a premium user
+            - Effect: "Allow"
+              Action: "execute-api:Invoke"
+              # arn:aws:execute-api:<region>:<accountId>:<apiId>/<stage>/<method>/<path>
+              Resource: !Sub "arn:aws:execute-api:${self:provider.region}:${aws:accountId}:${HttpApi}/*/POST/membership"
+
+            # TLhe free-content-bucket is accessible to all the authenticated users regardless of their membership.
+            - Effect: "Allow"
+              Action:
+                - "s3:GetObject"
+                - "s3:ListBucket"
+              Resource:
+                - !GetAtt FreeContentBucket.Arn
+                - !Join ['', [!GetAtt FreeContentBucket.Arn, '/*']]
+
+            # The premium-content-bucket is accessible only to authenticated users with the 'premium' membership.
+            - Effect: "Allow"
+              Action:
+                - "s3:GetObject"
+                - "s3:ListBucket"
+              Resource:
+                - !GetAtt PremiumContentBucket.Arn
+                - !Join ['', [!GetAtt PremiumContentBucket.Arn, '/*']]
+              Condition:
+                StringEquals:
+                  "aws:PrincipalTag/membership": "premium"

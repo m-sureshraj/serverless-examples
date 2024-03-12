@@ -1,0 +1,80 @@
+# https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-cognito-userpool.html
+UserPool:
+  Type: AWS::Cognito::UserPool
+  # none of these properties are required
+  Properties:
+    UserPoolName: ${self:custom.appPrefix}-user-pool
+    DeletionProtection: ACTIVE
+    MfaConfiguration: OFF
+    AccountRecoverySetting:
+      RecoveryMechanisms:
+        - Name: verified_email
+          Priority: 1
+    UsernameAttributes: # which attributes should be used as username
+      - email
+    AutoVerifiedAttributes:
+      - email
+    UserAttributeUpdateSettings:
+      AttributesRequireVerificationBeforeUpdate:
+        - email
+    Schema:
+      - Name: given_name
+        AttributeDataType: String
+        Mutable: true
+        Required: true
+      - Name: email
+        AttributeDataType: String
+        Mutable: true
+        Required: true
+      - Name: membership # custom attribute
+        AttributeDataType: String
+        Required: false
+        Mutable: true
+
+# https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-cognito-userpoolclient.html
+UserPoolClient:
+  Type: AWS::Cognito::UserPoolClient
+  Properties:
+    ClientName: ${self:custom.appPrefix}-user-pool-public-client
+    UserPoolId: !Ref UserPool
+    AccessTokenValidity: 1 # valid for 1 hour
+
+    AllowedOAuthFlowsUserPoolClient: true
+    AllowedOAuthFlows:
+      - code
+
+    # openid: declares that you want to retrieve scopes that align with the OpenID Connect specification. Amazon Cognito doesn't return an ID token unless you request the openid scope.
+    # email: grants access to the email and email_verified claims. Can only be requested with the openid scope.
+    # profile: grants access to all user attributes that are readable by the client. Can only be requested with the openid scope.
+    # aws.cognito.signin.user.admin: grants access to cognito api operation that required access token, such as UpdateUserAttributes
+    AllowedOAuthScopes:
+      - email
+      - profile
+      - openid
+      - aws.cognito.signin.user.admin
+
+    # todo: temporary. check if cb will be used when calling cognito via SDK
+    CallbackURLs:
+      - http://localhost:5000/auth-callback
+
+    SupportedIdentityProviders:
+      - COGNITO
+
+    ReadAttributes:
+      - email
+      - email_verified
+      - given_name
+      # ensures the user can only have read-only access to this attribute.
+      - custom:membership
+
+    WriteAttributes:
+      - email
+      - given_name
+
+    GenerateSecret: false
+    PreventUserExistenceErrors: ENABLED
+    EnableTokenRevocation: true
+
+    ExplicitAuthFlows:
+      - ALLOW_USER_SRP_AUTH
+      - ALLOW_REFRESH_TOKEN_AUTH
