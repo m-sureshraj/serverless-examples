@@ -4,7 +4,7 @@ frameworkVersion: '3'
 provider:
   name: aws
   runtime: nodejs20.x
-  region: eu-west-1 # Ireland
+  region: ${opt:region, 'eu-west-1'} # Ireland
   stage: ${opt:stage, 'dev'}
   logRetentionInDays: 14
   architecture: arm64

@@ -17,7 +17,6 @@ The `event.requestContext.authorizer.iam.cognitoIdentity` object has the followi
 }
 * */
 
-//
 function getUserId(event) {
   const authProvider = event.requestContext.authorizer.iam.cognitoIdentity.amr.findLast(item => item.includes(':CognitoSignIn:'));
   const parts = authProvider.split(':');
