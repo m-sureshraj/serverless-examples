@@ -1,0 +1,73 @@
+service: attr-based-acc-ctrl
+frameworkVersion: '3'
+
+provider:
+  name: aws
+  runtime: nodejs20.x
+  region: ${opt:region, 'eu-west-1'} # Ireland
+  stage: ${opt:stage, 'dev'}
+  logRetentionInDays: 14
+  architecture: arm64
+  deploymentMethod: direct
+  environment:
+    STAGE: ${self:provider.stage}
+    COGNITO_USER_POOL_ID: !Ref UserPool
+  iam:
+    # The Admin* command allows the application to manage all users in the user pool.
+    # It can update attributes that are not writable by the end user.
+    role:
+      statements:
+        - Effect: Allow
+          Action: 'cognito-idp:AdminUpdateUserAttributes'
+          Resource: !GetAtt UserPool.Arn
+
+plugins:
+  # A dev-dependency plugin to resolve AWS credentials when using
+  # `aws sso login --<profileName>` to get temporary credentials in local development
+  - serverless-better-credentials # should be the first plugin
+  - serverless-esbuild
+
+package:
+  individually: true # each function gets its own package
+
+custom:
+  appPrefix: ${self:provider.stage}-${self:service}
+
+  esbuild:
+    minify: false
+    format: esm
+    keepOutputDirectory: true
+    platform: neutral
+    outExtension:
+      # Unable to include package.json in the bundle, which defines the module system (ESM/CJS).
+      # Converting .js to .mjs for proper import/export resolution.
+      .js: .mjs
+    exclude:
+      # Lambda runtime (nodejs18.x) provides AWS-SDK v3 libs natively, so no need to include them in the final bundle (zip)
+      - '@aws-sdk/client-cognito-identity-provider'
+
+functions:
+  membership:
+    handler: src/membership.handler
+    events:
+      - httpApi:
+          path: /membership
+          method: post
+          authorizer:
+            type: aws_iam
+
+resources:
+  Resources:
+    UserPool: ${file(./infra/cognito-user-pool.yml):UserPool}
+    UserPoolClient: ${file(./infra/cognito-user-pool.yml):UserPoolClient}
+
+    IdentityPool: ${file(./infra/cognito-identity-pool.yml):IdentityPool}
+    AuthenticatedRoleAttachment: ${file(./infra/cognito-identity-pool.yml):AuthenticatedRoleAttachment}
+    PrincipalTags: ${file(./infra/cognito-identity-pool.yml):PrincipalTags}
+
+    AuthenticatedRole: ${file(./infra/iam.yml):AuthenticatedRole}
+
+    PremiumContentBucket: ${file(./infra/s3.yml):PremiumContentBucket}
+    FreeContentBucket: ${file(./infra/s3.yml):FreeContentBucket}
+
+  Outputs: ${file(./infra/outputs.yml):Outputs}

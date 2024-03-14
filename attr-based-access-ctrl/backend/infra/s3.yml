@@ -1,0 +1,9 @@
+PremiumContentBucket:
+  Type: AWS::S3::Bucket
+  Properties:
+    BucketName: ${self:custom.appPrefix}-premium-content
+
+FreeContentBucket:
+  Type: AWS::S3::Bucket
+  Properties:
+    BucketName: ${self:custom.appPrefix}-free-content

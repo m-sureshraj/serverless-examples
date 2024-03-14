@@ -1,0 +1,31 @@
+#  https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-cognito-identitypool.html
+IdentityPool:
+  Type: AWS::Cognito::IdentityPool
+  Properties:
+    IdentityPoolName: ${self:custom.appPrefix}
+    AllowUnauthenticatedIdentities: false # don't allow unauthenticated access (f.e. guest users)
+    # Link to our User Pool
+    CognitoIdentityProviders:
+      - ClientId: !Ref UserPoolClient # the client id of the user pool not the user pool id
+        ProviderName: !GetAtt UserPool.ProviderName # e.g. cognito-idp.eu-west-1.amazonaws.com/eu-west-1_xxxxxxxx
+        ServerSideTokenCheck: true
+
+PrincipalTags:
+  Type: AWS::Cognito::IdentityPoolPrincipalTag
+  Properties:
+    IdentityPoolId: !Ref IdentityPool
+    IdentityProviderName: !GetAtt UserPool.ProviderName
+    PrincipalTags:
+      membership: "custom:membership"
+
+# An authenticated user's membership can be free/premium.
+# This role grants
+#   - read access to a S3 bucket that contains free content
+#   - access to the /membership api gateway endpoint to become a premium user
+#   - read access to a S3 bucket that contains premium content when the user is a premium user (conditional)
+AuthenticatedRoleAttachment:
+  Type: AWS::Cognito::IdentityPoolRoleAttachment
+  Properties:
+    IdentityPoolId: !Ref IdentityPool
+    Roles:
+      authenticated: !GetAtt AuthenticatedRole.Arn
