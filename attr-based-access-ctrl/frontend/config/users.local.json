@@ -1,0 +1,12 @@
+{
+  "freeUser": {
+    "username": "<your free user email address>",
+    "password": "",
+    "givenName": ""
+  },
+  "premiumUser": {
+    "username": "<your premium user email address>",
+    "password": "",
+    "givenName": ""
+  }
+}

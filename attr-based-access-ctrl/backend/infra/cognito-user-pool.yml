@@ -41,7 +41,7 @@ UserPoolClient:
 
     AllowedOAuthFlowsUserPoolClient: true
     AllowedOAuthFlows:
-      - code
+      - code # Authorization Code Grant
 
     # openid: declares that you want to retrieve scopes that align with the OpenID Connect specification. Amazon Cognito doesn't return an ID token unless you request the openid scope.
     # email: grants access to the email and email_verified claims. Can only be requested with the openid scope.
