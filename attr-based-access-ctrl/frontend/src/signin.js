@@ -61,7 +61,7 @@ async function getCredentials(tokens) {
 
   AWS.config.region = awsConfig.region;
   const AWSCredentials = new AWS.CognitoIdentityCredentials({
-    IdentityPoolId: awsConfig.IdentityPoolId,
+    IdentityPoolId: awsConfig.identityPoolId,
     Logins: logins
   });
 

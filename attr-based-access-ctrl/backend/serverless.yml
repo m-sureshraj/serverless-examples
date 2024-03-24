@@ -26,6 +26,7 @@ plugins:
   # A dev-dependency plugin to resolve AWS credentials when using
   # `aws sso login --<profileName>` to get temporary credentials in local development
   - serverless-better-credentials # should be the first plugin
+  - serverless-export-outputs
   - serverless-esbuild
 
 package:
@@ -33,6 +34,19 @@ package:
 
 custom:
   appPrefix: ${self:provider.stage}-${self:service}
+
+  # export outputs to be used by the frontend
+  exportOutputs:
+    include:
+      - userPoolId
+      - userPoolClientId
+      - identityPoolId
+      - premiumContentBucketName
+      - freeContentBucketName
+      - region: ${self:provider.region}
+    output:
+      file: ../frontend/config/aws.json
+      format: json
 
   esbuild:
     minify: false

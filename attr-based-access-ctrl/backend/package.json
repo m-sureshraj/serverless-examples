@@ -12,7 +12,8 @@
   "devDependencies": {
     "serverless": "^3.38.0",
     "serverless-better-credentials": "^2.0.0",
-    "serverless-esbuild": "^1.52.1"
+    "serverless-esbuild": "^1.52.1",
+    "serverless-export-outputs": "^1.0.2"
   },
   "dependencies": {
     "@aws-sdk/client-cognito-identity-provider": "^3.525.0"
