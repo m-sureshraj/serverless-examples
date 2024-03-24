@@ -1,0 +1,18 @@
+{
+  "name": "attr-based-acc-ctrl",
+  "version": "1.0.0",
+  "description": "",
+  "type": "module",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@aws-sdk/client-s3": "^3.525.0",
+    "amazon-cognito-identity-js": "^6.3.7",
+    "aws-sdk": "^2.1561.0",
+    "edit-json-file": "^1.8.0"
+  }
+}

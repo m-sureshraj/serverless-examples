@@ -9,6 +9,7 @@ provider:
   logRetentionInDays: 14
   architecture: arm64
   deploymentMethod: direct
+  versionFunctions: false
   environment:
     STAGE: ${self:provider.stage}
     COGNITO_USER_POOL_ID: !Ref UserPool
@@ -18,7 +19,7 @@ provider:
     role:
       statements:
         - Effect: Allow
-          Action: 'cognito-idp:AdminUpdateUserAttributes'
+          Action: cognito-idp:AdminUpdateUserAttributes
           Resource: !GetAtt UserPool.Arn
 
 plugins:
