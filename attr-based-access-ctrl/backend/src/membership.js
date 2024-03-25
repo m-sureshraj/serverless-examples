@@ -33,6 +33,7 @@ function getUserId(event) {
 
 export async function handler(event) {
   console.log("handling membership request to become a premium user", event);
+  console.log("event.requestContext.authorizer.iam", event.requestContext.authorizer.iam);
 
   const userId = getUserId(event);
   console.log("userId", userId);

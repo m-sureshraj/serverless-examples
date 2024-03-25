@@ -43,6 +43,8 @@ custom:
       - identityPoolId
       - premiumContentBucketName
       - freeContentBucketName
+      - apiEndpoint
+      # custom fields
       - region: ${self:provider.region}
     output:
       file: ../frontend/config/aws.json
