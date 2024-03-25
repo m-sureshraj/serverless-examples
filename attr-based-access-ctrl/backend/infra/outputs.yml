@@ -1,13 +1,11 @@
 Outputs:
-  UserPoolId:
+  userPoolId:
     Value: !Ref UserPool
-  UserPoolProviderName:
-    Value: !GetAtt UserPool.ProviderName
-  UserPoolClientId:
+  userPoolClientId:
     Value: !Ref UserPoolClient
-  IdentityPoolId:
+  identityPoolId:
     Value: !Ref IdentityPool
-  PremiumContentBucketName:
+  premiumContentBucketName:
     Value: !Ref PremiumContentBucket
-  FreeContentBucketName:
+  freeContentBucketName:
     Value: !Ref FreeContentBucket
