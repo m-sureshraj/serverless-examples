@@ -1,4 +1,7 @@
 Outputs:
+  # `HttpApi` is the logical id of the api gateway resource that was created as part of Serverless framework
+  apiEndpoint:
+    Value: !GetAtt HttpApi.ApiEndpoint
   userPoolId:
     Value: !Ref UserPool
   userPoolClientId:
