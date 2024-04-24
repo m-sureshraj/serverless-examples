@@ -6,9 +6,16 @@ import {
   CognitoUserAttribute,
 } from "amazon-cognito-identity-js";
 
-import { getUserPoolConfig, getSessionUser } from './util.js'
+import {
+  getUserPoolConfig,
+  getSessionUser,
+  parseCommandLineArgs,
+} from "./util.js";
 
-// Registers a user with the application. The UserPool client supports only SRP authentication.
+const { userType } = parseCommandLineArgs();
+await signUp(userType);
+
+// Registers a user with the application. The UserPool client supports only Secure Remove Password (SRP) authentication.
 // The `amazon-cognito-identity-js` lib handles this part internally
 export async function signUp(userType) {
   const poolData = getUserPoolConfig();
