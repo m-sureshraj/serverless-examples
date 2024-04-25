@@ -5,10 +5,7 @@ import { SignatureV4 } from "@aws-sdk/signature-v4";
 import { Sha256 } from "@aws-crypto/sha256-js";
 
 import awsConfig from "../config/aws.json" assert { type: "json" };
-import { getSessionUser, parseCommandLineArgs } from "./util.js";
-
-const { userType } = parseCommandLineArgs();
-const { awsTempCredentials } = getSessionUser(userType);
+import { getSessionUser } from "./util.js";
 
 const url = new URL(`${awsConfig.apiEndpoint}/membership`);
 const request = new HttpRequest({
@@ -20,6 +17,7 @@ const request = new HttpRequest({
   },
 });
 
+const { awsTempCredentials } = getSessionUser("premiumUser");
 const signer = new SignatureV4({
   credentials: awsTempCredentials,
   service: "execute-api",

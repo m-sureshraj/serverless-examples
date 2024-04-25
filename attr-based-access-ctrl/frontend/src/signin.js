@@ -8,22 +8,15 @@ import {
 } from "amazon-cognito-identity-js";
 import AWS from "aws-sdk";
 
-import {
-  writeTempAWSCredentials,
-  writeTokens,
-  getUserPoolConfig,
-  parseCommandLineArgs,
-} from "./util.js";
-import awsConfig from "../config/aws.json" assert { type: "json" };
-import usersConfig from "../config/users.json" assert { type: "json" };
+import { writeTempAWSCredentials, writeTokens, getUserPoolConfig } from "./util.js";
+import awsConfig from '../config/aws.json' assert { type: "json" };
+import usersConfig from '../config/users.json' assert { type: "json" };
 
-const { userType } = parseCommandLineArgs();
+const userType = 'premiumUser' // or 'freeUser'
 const sessionUser = usersConfig[userType];
 
-await signIn(getCredentials);
-
 async function signIn(getCredentials) {
-  const userPoolConfig = getUserPoolConfig();
+  const userPoolConfig = getUserPoolConfig()
   const userPool = new CognitoUserPool(userPoolConfig);
 
   const userData = {
@@ -69,18 +62,16 @@ async function getCredentials(tokens) {
   AWS.config.region = awsConfig.region;
   const AWSCredentials = new AWS.CognitoIdentityCredentials({
     IdentityPoolId: awsConfig.identityPoolId,
-    Logins: logins,
+    Logins: logins
   });
 
   const get = promisify(AWSCredentials.get).bind(AWSCredentials);
-  await get();
+  await get()
 
   const accessKeyId = AWSCredentials.accessKeyId;
   const secretAccessKey = AWSCredentials.secretAccessKey;
   const sessionToken = AWSCredentials.sessionToken;
-  await writeTempAWSCredentials(userType, {
-    accessKeyId,
-    secretAccessKey,
-    sessionToken,
-  });
+  await writeTempAWSCredentials(userType, { accessKeyId, secretAccessKey, sessionToken })
 }
+
+await signIn(getCredentials);
