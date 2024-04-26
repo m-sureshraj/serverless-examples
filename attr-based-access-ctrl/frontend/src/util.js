@@ -51,14 +51,12 @@ export function parseCommandLineArgs() {
 
   const { userType } = parsedArgsObj;
   if (!userType) {
-    throw new Error(
-      "Required argument 'user' is missing. Usage: npm run signup user=<free|premium>",
-    );
+    throw new Error("Required argument 'userType' is missing");
   }
 
   if (!["free", "premium"].includes(userType)) {
     throw new Error(
-      "Invalid argument 'user'. Usage: npm run signup user=<free|premium>",
+      "Invalid argument 'userType'. Must be either 'free' or 'premium'",
     );
   }
 

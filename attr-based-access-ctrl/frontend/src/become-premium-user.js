@@ -36,6 +36,7 @@ try {
   });
 
   const json = await res.json();
+  // todo: retrieve new credentials after becoming a premium user.
   console.log(json);
 } catch (error) {
   console.log(error);

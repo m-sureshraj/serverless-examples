@@ -1,5 +1,3 @@
-import { promisify } from "node:util";
-
 import { CognitoUserPool, CognitoUser } from "amazon-cognito-identity-js";
 
 import {
@@ -15,10 +13,10 @@ if (!confirmationCode) {
   );
 }
 
-await confirmRegistration(userType, confirmationCode);
+confirmRegistration(userType, confirmationCode);
 
 // Confirms a registered, unauthenticated user using a confirmation code received via email.
-export async function confirmRegistration(userType, confirmationCode) {
+function confirmRegistration(userType, confirmationCode) {
   const sessionUser = getSessionUser(userType);
   const poolData = getUserPoolConfig();
   const userPool = new CognitoUserPool(poolData);
@@ -27,10 +25,18 @@ export async function confirmRegistration(userType, confirmationCode) {
     Username: sessionUser.username,
     Pool: userPool,
   });
-  const confirmRegistration = promisify(cognitoUser.confirmRegistration).bind(
-    cognitoUser,
-  );
 
-  await confirmRegistration(confirmationCode);
-  console.log("User was confirmed");
+  const forceAliasCreation = false;
+  cognitoUser.confirmRegistration(
+    confirmationCode,
+    forceAliasCreation,
+    (err, result) => {
+      if (err) {
+        console.error(err.message || JSON.stringify(err));
+        return;
+      }
+
+      console.log(`User: "${cognitoUser.getUsername()}" was confirmed`);
+    },
+  );
 }
