@@ -4,7 +4,11 @@
   "description": "",
   "type": "module",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "signup": "node ./src/signup.js",
+    "confirm": "node ./src/confirm-registration.js",
+    "signin": "node ./src/signin.js",
+    "become-premium-user": "node ./src/become-premium-user.js",
+    "list-bucket": "node ./src/s3-actions.js"
   },
   "keywords": [],
   "author": "",

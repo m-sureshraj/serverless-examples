@@ -53,7 +53,7 @@ custom:
   esbuild:
     minify: false
     format: esm
-    keepOutputDirectory: true
+    keepOutputDirectory: true # for debugging
     platform: neutral
     outExtension:
       # Unable to include package.json in the bundle, which defines the module system (ESM/CJS).
