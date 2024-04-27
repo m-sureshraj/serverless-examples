@@ -8,7 +8,8 @@
     "confirm": "node ./src/confirm-registration.js",
     "signin": "node ./src/signin.js",
     "become-premium-user": "node ./src/become-premium-user.js",
-    "list-bucket": "node ./src/s3-actions.js"
+    "list-bucket": "node ./src/s3-actions.js",
+    "refresh-session": "node ./src/refresh-session.js"
   },
   "keywords": [],
   "author": "",

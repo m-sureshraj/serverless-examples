@@ -6,23 +6,22 @@ import {
   CognitoUser,
   AuthenticationDetails,
 } from "amazon-cognito-identity-js";
-import AWS from "aws-sdk";
 
 import {
-  writeTempAWSCredentials,
   writeTokens,
   getUserPoolConfig,
   parseCommandLineArgs,
+  writeTempAWSCredentials,
 } from "./util.js";
-import awsConfig from "../config/aws.json" assert { type: "json" };
+import { getTempAWSCredentials } from "./get-temp-aws-credentials.js";
 import usersConfig from "../config/users.json" assert { type: "json" };
 
 const { userType } = parseCommandLineArgs();
 const sessionUser = usersConfig[userType];
 
-await signIn(getCredentials);
+await signIn();
 
-async function signIn(getCredentials) {
+async function signIn() {
   const userPoolConfig = getUserPoolConfig();
   const userPool = new CognitoUserPool(userPoolConfig);
 
@@ -51,36 +50,12 @@ async function signIn(getCredentials) {
       };
       await writeTokens(userType, tokens);
 
-      console.log("getting credentials from Cognito Identity Pool");
-      await getCredentials(tokens);
+      console.log("getting temporary AWS credentials from Cognito Identity Pool");
+      const credentials = await getTempAWSCredentials(tokens);
+      await writeTempAWSCredentials(userType, credentials);
     },
     onFailure: (err) => {
       console.log(err);
     },
-  });
-}
-
-async function getCredentials(tokens) {
-  const key = `cognito-idp.${awsConfig.region}.amazonaws.com/${awsConfig.userPoolId}`;
-  const logins = {
-    [key]: tokens.idToken,
-  };
-
-  AWS.config.region = awsConfig.region;
-  const AWSCredentials = new AWS.CognitoIdentityCredentials({
-    IdentityPoolId: awsConfig.identityPoolId,
-    Logins: logins,
-  });
-
-  const get = promisify(AWSCredentials.get).bind(AWSCredentials);
-  await get();
-
-  const accessKeyId = AWSCredentials.accessKeyId;
-  const secretAccessKey = AWSCredentials.secretAccessKey;
-  const sessionToken = AWSCredentials.sessionToken;
-  await writeTempAWSCredentials(userType, {
-    accessKeyId,
-    secretAccessKey,
-    sessionToken,
   });
 }

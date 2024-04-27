@@ -15,7 +15,7 @@ if (!confirmationCode) {
 
 confirmRegistration(userType, confirmationCode);
 
-// Confirms a registered, unauthenticated user using a confirmation code received via email.
+// Confirms a user using a confirmation code received via email after registration (signup).
 function confirmRegistration(userType, confirmationCode) {
   const sessionUser = getSessionUser(userType);
   const poolData = getUserPoolConfig();

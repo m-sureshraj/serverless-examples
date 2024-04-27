@@ -6,6 +6,7 @@ import { Sha256 } from "@aws-crypto/sha256-js";
 
 import awsConfig from "../config/aws.json" assert { type: "json" };
 import { getSessionUser, parseCommandLineArgs } from "./util.js";
+import { refreshSession } from './refresh-session.js';
 
 const { userType } = parseCommandLineArgs();
 const { awsTempCredentials } = getSessionUser(userType);
@@ -36,8 +37,10 @@ try {
   });
 
   const json = await res.json();
-  // todo: retrieve new credentials after becoming a premium user.
   console.log(json);
+
+  console.log('\nRefreshing session');
+  await refreshSession(userType);
 } catch (error) {
   console.log(error);
 }
