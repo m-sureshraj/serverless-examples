@@ -19,17 +19,17 @@ function signUp(userType) {
   const poolData = getUserPoolConfig();
   const sessionUser = getSessionUser(userType);
 
-  console.log(`signing up user: ${sessionUser.username}`);
   const attributeList = [
     new CognitoUserAttribute({
       Name: "given_name",
       Value: sessionUser.givenName,
     }),
   ];
+  const validationData = null;
+
+  console.log(`signing up user: ${sessionUser.username}`);
 
   const userPool = new CognitoUserPool(poolData);
-
-  const validationData = null;
   userPool.signUp(
     sessionUser.username,
     sessionUser.password,
