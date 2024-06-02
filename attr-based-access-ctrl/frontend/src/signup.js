@@ -13,7 +13,8 @@ import {
 const { userType } = parseCommandLineArgs();
 signUp(userType);
 
-// Registers a user with the application. The UserPool client supports only Secure Remove Password (SRP) authentication.
+// Registers a user with the application.
+// The UserPool client is configured to support only Secure Remote Password (SRP) authentication for enhanced security.
 // The `amazon-cognito-identity-js` lib handles this part internally
 function signUp(userType) {
   const poolData = getUserPoolConfig();

@@ -53,18 +53,19 @@ UserPoolClient:
       - openid
       - aws.cognito.signin.user.admin
 
-    # todo: temporary. check if cb will be used when calling cognito via SDK
+    # The frontend initiates the auth directly via AWS SDK, so it doesn't need a callback,
+    # but it's a required field for the Cognito app client. The following url is a dummy one.
     CallbackURLs:
-      - http://localhost:5000/auth-callback
+      - http://localhost
 
     SupportedIdentityProviders:
       - COGNITO
 
+    # ensures the user can only have read-only access to these attribute
     ReadAttributes:
       - email
       - email_verified
       - given_name
-      # ensures the user can only have read-only access to this attribute.
       - custom:membership
 
     WriteAttributes:

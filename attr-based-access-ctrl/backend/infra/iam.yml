@@ -19,6 +19,7 @@ AuthenticatedRole:
             "ForAnyValue:StringLike":
               "cognito-identity.amazonaws.com:amr": "authenticated"
 
+    # Permission policy
     Policies:
       - PolicyName: ${self:custom.appPrefix}-authenticated-user-policy
         PolicyDocument:
@@ -30,7 +31,7 @@ AuthenticatedRole:
               # arn:aws:execute-api:<region>:<accountId>:<apiId>/<stage>/<method>/<path>
               Resource: !Sub "arn:aws:execute-api:${self:provider.region}:${aws:accountId}:${HttpApi}/*/POST/membership"
 
-            # TLhe free-content-bucket is accessible to all the authenticated users regardless of their membership.
+            # The free-content-bucket is accessible to all the authenticated users regardless of their membership.
             - Effect: "Allow"
               Action:
                 - "s3:GetObject"
