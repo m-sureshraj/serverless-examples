@@ -2,7 +2,7 @@
   "name": "attr-based-acc-ctrl",
   "version": "1.0.0",
   "type": "module",
-  "description": "",
+  "description": "The backend of the application defines the infrastructure and manages the backend logic",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },

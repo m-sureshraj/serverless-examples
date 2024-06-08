@@ -2,7 +2,7 @@
 
 The backend of the application defines the infrastructure shown in the diagram and manages the backend logic.
 
-![Application architecture](media/attr-based-access-ctrl-diagram.png)
+![Application architecture - backend](../media/app-diagram-backend.png)
 
 The following section provides a brief overview of the components and their configurations.
 
@@ -53,12 +53,26 @@ The following section provides a brief overview of the components and their conf
 
 ## Deployment
 
-Ensure that you have cloned the project to local and installed the dependencies.
-Then, run the following command to deploy the project to AWS.
+First, clone the project to local:
+
+```shell
+git clone git@github.com:m-sureshraj/serverless-examples.git
+cd attr-based-access-ctrl/backend
+```
+
+install the dependencies:
+
+```shell
+npm install
+```
+
+finally, deploy the project to AWS
 
 ```shell
 sls deploy --verbose
 ```
+
+> Make sure to include the `--verbose` flag when running the sls deploy command. This will instruct the command to print the stack outputs.
 
 A successful deployment prints a similar output:
 
