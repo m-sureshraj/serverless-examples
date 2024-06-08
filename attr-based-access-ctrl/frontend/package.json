@@ -1,7 +1,7 @@
 {
   "name": "attr-based-acc-ctrl",
   "version": "1.0.0",
-  "description": "",
+  "description": "A set of Node.js scripts that handles the authentication flow through AWS SDK and libraries",
   "type": "module",
   "scripts": {
     "signup": "node ./src/signup.js",
