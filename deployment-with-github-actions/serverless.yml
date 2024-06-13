@@ -1,0 +1,30 @@
+service: deployment-with-github-actions
+frameworkVersion: "3"
+
+provider:
+  name: aws
+  deploymentMethod: direct
+  runtime: nodejs20.x
+  region: ${opt:region, 'eu-west-2'}
+  stage: ${opt:stage, 'dev'}
+  logRetentionInDays: 14
+  architecture: arm64
+
+custom:
+  # Used in the IAM role creation to permit only the specified repository in the organization to assume this role.
+  GithubRepoOwner: "m-sureshraj"
+  GithubRepoName: "serverless-examples"
+
+functions:
+  api:
+    handler: index.handler
+    events:
+      - httpApi:
+          path: /
+          method: get
+
+resources:
+  Resources:
+    GithubActionDeploymentRole: ${file(./infra/resources.yml):GithubActionDeploymentRole}
+
+  Outputs: ${file(./infra/resources.yml):Outputs}

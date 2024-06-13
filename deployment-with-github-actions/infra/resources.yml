@@ -1,0 +1,35 @@
+GithubActionDeploymentRole:
+  Type: AWS::IAM::Role
+  Properties:
+    RoleName:  GithubActionDeploymentRole
+    MaxSessionDuration: 3600 # 1 hour
+    Description: This role will be used to deploy resources through Github Actions
+
+    # The trust policy that is associated with this role. Trust policies define which entities can assume the role.
+    # https://docs.aws.amazon.com/IAM/latest/UserGuide/id_roles_create_for-idp_oidc.html#idp_oidc_Create_GitHub
+    AssumeRolePolicyDocument:
+      Version: "2012-10-17"
+      Statement:
+        - Effect: Allow
+          Principal:
+            Federated:
+              #  This is the ARN of the Github OIDC provider.
+              - arn:aws:iam::${aws:accountId}:oidc-provider/token.actions.githubusercontent.com
+          Action:
+            - sts:AssumeRoleWithWebIdentity
+          Condition:
+            StringLike:
+              # Permits only the specified repository in the organization to assume this role.
+              # The wildcard is used to allow any branch within the repository to assume this role.
+              token.actions.githubusercontent.com:sub: !Sub repo:${self:custom.GithubRepoOwner}/${self:custom.GithubRepoName}:*
+            StringEquals:
+              token.actions.githubusercontent.com:aud: sts.amazonaws.com
+
+    # The permissions that are granted to the role.
+    ManagedPolicyArns:
+      - arn:aws:iam::aws:policy/AdministratorAccess
+
+Outputs:
+  GithubActionDeploymentRoleARN:
+    Value: !GetAtt GithubActionDeploymentRole.Arn
+    Description: ARN of the Github Action Deployment Role
