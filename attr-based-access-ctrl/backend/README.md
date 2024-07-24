@@ -98,7 +98,7 @@ Stack Outputs:
 Some [configurations](./serverless.yml#L39) from the Stack Outputs will be automatically copied
 to the `frontend/config/aws.json` file to be used by the frontend.
 
-## Testing the application
+## Testing the Application
 
 Refer to the frontend [README.md](../frontend/README.md) for instructions on testing
 the app functionalities, such as sign-up, sign-in, and accessing free and premium contents.

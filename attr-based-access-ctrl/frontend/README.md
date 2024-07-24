@@ -18,7 +18,7 @@ Ensure that you are in the frontend directory and run the following command:
 npm install
 ```
 
-## Configure the user's credentials
+## Configure the User's Credentials
 
 There are two types of users in the application: free and premium.
 All attributes are required, and the `username` must be a valid email address.
@@ -45,9 +45,9 @@ In a browser application, these fields are filled in during sign-up.
 > [!TIP]  
 > If you have a gmail account, use `+` trick to create unique email addresses. e.g. `foo+user-1@gmail.com`.
 
-## Testing the application
+## Testing the Application
 
-#### 1. Create a new user
+### 1. Create a New User
 
 The following command creates a new free-type user using the credentials set up in the `./config/users.json` file.
 
@@ -59,9 +59,9 @@ The email address receives a verification code if the user is created successful
 
 ![verification code](../media/verification-code.png)
 
-### 2. Confirm the registration
+### 2. Confirm the Registration
 
-After the registration, the user account must be confirmed using the verification code.
+After registering, the user account must be confirmed using the verification code.
 
 ```shell
 npm run confirm userType=free confirmationCode=<verification code>
@@ -69,7 +69,7 @@ npm run confirm userType=free confirmationCode=<verification code>
 
 ![confirmed user account](../media/confirmed-user-account.png)
 
-### Login to the application
+### 3. Login to the Application
 
 The command uses the credentials set up earlier to log in to the application. A successful login will:
 
@@ -81,12 +81,12 @@ The command uses the credentials set up earlier to log in to the application. A 
 npm run signin userType=free
 ```
 
-### Access the AWS resources
+### 4. Access the Resources
 
 The free-type user has the following permissions in the application:
 
 - Read access to the S3 bucket that contains free contents.
-- Access to the `/membership` api gateway endpoint to become a premium user.
+- Access to the `/membership` API Gateway endpoint to become a premium user.
 
 The command below lists the free contents from the `dev-attr-based-acc-ctrl-free-content` S3 bucket.
 
@@ -108,13 +108,13 @@ The command prints a similar output:
 ```
 
 Check if the free-type user has access to the premium contents.
-The command below tries to list the premium contents by explicitly specifying the bucket name.
+The command below attempts to list the premium contents by explicitly specifying the bucket name.
 
 ```shell
 npm run list-bucket userType=free bucketName=dev-attr-based-acc-ctrl-premium-content
 ```
 
-The command should receive Access Denied response.
+The command should receive an Access Denied response.
 
 ```
 AccessDenied: Access Denied
@@ -130,9 +130,9 @@ AccessDenied: Access Denied
 }
 ```
 
-### Become a premium user
+### 5. Become a Premium User
 
-The command below calls the `/membership` endpoint to upgrade the membership of the user to a premium user.
+The command below calls the `/membership` endpoint to upgrade the user's membership to premium.
 
 ```shell
 npm run become-premium-user userType=free
@@ -146,9 +146,9 @@ If the command succeeds, it will print the following message:
 
 Rename the `free` attribute to `premium` and the `premium` attribute to `free` in `./config/users.json`.
 
-### Access the AWS resources as a premium user
+### 6. Access the resources as a Premium User
 
-Premium users have access to both the free and premium contents.
+Premium users have access to both free and premium contents.
 
 ```shell
 # lists the premium contents from the `dev-attr-based-acc-ctrl-premium-content` S3 bucket
@@ -158,7 +158,7 @@ npm run list-bucket userType=premium
 npm run list-bucket userType=premium bucketName=dev-attr-based-acc-ctrl-free-content
 ```
 
-### Refresh the session (Optional)
+### 7. Refresh the Session (Optional)
 
 The temporary AWS credentials expire after 1 hour. They can be refreshed by running the following command.
 
@@ -166,5 +166,15 @@ The temporary AWS credentials expire after 1 hour. They can be refreshed by runn
 npm run refresh-session userType=<free | premium>
 ```
 
-> [!NOTE]  
-> We created a free-type user and upgraded to premium. You can additionally create a free-type user for testing purposes.
+> [!NOTE]
+> We created a free-type user and upgraded to a premium user. You can additionally create a free-type user alongside
+> the premium user for testing their permissions in parallel.
+
+## Libraries used
+
+- The `@aws-crypto/sha256-js`, `@aws-sdk/protocol-http`, and `@aws-sdk/signature-v4` packages are used
+  to sign requests with AWS Signature Version 4. The `/membership` endpoint is secured by IAM authorization,
+  so only authenticated users can invoke it.
+
+- The `amazon-cognito-identity-js` package is used to communicate with the user pool and identity pool to
+  handle the sign-up, sign-in, token refresh, etc.
