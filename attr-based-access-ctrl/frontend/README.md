@@ -6,9 +6,9 @@ applied to the real frontend (browser) application as well.
 
 ## Pre-requisites
 
-* Ensure that the backend application is [deployed](../backend/README.md#deployment) first.
-  > A successful deployment will copy the required AWS configurations such as User pool ID, 
-  Identity pool ID, S3 bucket names to the git-ignored `./config/aws.json` file to be used in the authentication flow.
+- Ensure that the backend application is [deployed](../backend/README.md#deployment) first.
+  > A successful deployment will copy the required AWS configurations such as User pool ID,
+  > Identity pool ID, S3 bucket names to the git-ignored `./config/aws.json` file to be used in the authentication flow.
 
 ## Installation
 
@@ -18,7 +18,7 @@ Ensure that you are in the frontend directory and run the following command:
 npm install
 ```
 
-## Configure the user's credentials 
+## Configure the user's credentials
 
 There are two types of users in the application: free and premium.
 All attributes are required, and the `username` must be a valid email address.
@@ -39,15 +39,15 @@ In a browser application, these fields are filled in during sign-up.
 }
 ```
 
-* Copy `./config/users.local.json` to `./config/users.json`. The new file is git-ignored.
-* Update the `username`, `password`, and `givenName` attributes for the free-type user.
+- Copy `./config/users.local.json` to `./config/users.json`. The new file is git-ignored.
+- Update the `username`, `password`, and `givenName` attributes for the free-type user.
 
 > [!TIP]  
 > If you have a gmail account, use `+` trick to create unique email addresses. e.g. `foo+user-1@gmail.com`.
 
 ## Testing the application
 
-### Create a new user
+#### 1. Create a new user
 
 The following command creates a new free-type user using the credentials set up in the `./config/users.json` file.
 
@@ -59,7 +59,7 @@ The email address receives a verification code if the user is created successful
 
 ![verification code](../media/verification-code.png)
 
-### Confirm the registration
+### 2. Confirm the registration
 
 After the registration, the user account must be confirmed using the verification code.
 
@@ -73,9 +73,9 @@ npm run confirm userType=free confirmationCode=<verification code>
 
 The command uses the credentials set up earlier to log in to the application. A successful login will:
 
-  * Receive tokens (ID, Access, and Refresh) from Cognito.
-  * Fetch temporary AWS credentials from Identity Pool using the obtained tokens.
-  * Store both the tokens and temporary credentials under the `free` user in the `./config/users.json` file.
+- Receive tokens (ID, Access, and Refresh) from Cognito.
+- Fetch temporary AWS credentials from Identity Pool using the obtained tokens.
+- Store both the tokens and temporary credentials under the `free` user in the `./config/users.json` file.
 
 ```shell
 npm run signin userType=free
@@ -83,10 +83,10 @@ npm run signin userType=free
 
 ### Access the AWS resources
 
-The free-type user has the following permissions in the application: 
+The free-type user has the following permissions in the application:
 
-* Read access to the S3 bucket that contains free contents.
-* Access to the `/membership` api gateway endpoint to become a premium user.
+- Read access to the S3 bucket that contains free contents.
+- Access to the `/membership` api gateway endpoint to become a premium user.
 
 The command below lists the free contents from the `dev-attr-based-acc-ctrl-free-content` S3 bucket.
 
@@ -94,7 +94,7 @@ The command below lists the free contents from the `dev-attr-based-acc-ctrl-free
 npm run list-bucket userType=free
 ```
 
-The command prints a similar output:  
+The command prints a similar output:
 
 ```
 {
@@ -104,7 +104,7 @@ The command prints a similar output:
   MaxKeys: 2,
   Name: 'dev-attr-based-acc-ctrl-free-content',
   Prefix: ''
-}  
+}
 ```
 
 Check if the free-type user has access to the premium contents.
@@ -118,7 +118,7 @@ The command should receive Access Denied response.
 
 ```
 AccessDenied: Access Denied
-  ...  
+  ...
   '$fault': 'client',
   '$metadata': {
     httpStatusCode: 403,
@@ -132,7 +132,7 @@ AccessDenied: Access Denied
 
 ### Become a premium user
 
-The command below calls the `/membership` endpoint to upgrade the membership of the user to a premium user. 
+The command below calls the `/membership` endpoint to upgrade the membership of the user to a premium user.
 
 ```shell
 npm run become-premium-user userType=free
