@@ -59,6 +59,8 @@ The email address receives a verification code if the user is created successful
 
 ![verification code](../media/verification-code.png)
 
+<br/>
+
 ### 2. Confirm the Registration
 
 After registering, the user account must be confirmed using the verification code.
@@ -68,6 +70,8 @@ npm run confirm userType=free confirmationCode=<verification code>
 ```
 
 ![confirmed user account](../media/confirmed-user-account.png)
+
+<br/>
 
 ### 3. Login to the Application
 
@@ -80,6 +84,8 @@ The command uses the credentials set up earlier to log in to the application. A 
 ```shell
 npm run signin userType=free
 ```
+
+<br/>
 
 ### 4. Access the Resources
 
@@ -107,7 +113,7 @@ The command prints a similar output:
 }
 ```
 
-Check if the free-type user has access to the premium contents.
+Check if the free-type user has access to the premium content.
 The command below attempts to list the premium contents by explicitly specifying the bucket name.
 
 ```shell
@@ -130,6 +136,8 @@ AccessDenied: Access Denied
 }
 ```
 
+<br/>
+
 ### 5. Become a Premium User
 
 The command below calls the `/membership` endpoint to upgrade the user's membership to premium.
@@ -146,6 +154,8 @@ If the command succeeds, it will print the following message:
 
 Rename the `free` attribute to `premium` and the `premium` attribute to `free` in `./config/users.json`.
 
+<br/>
+
 ### 6. Access the resources as a Premium User
 
 Premium users have access to both free and premium contents.
@@ -158,6 +168,8 @@ npm run list-bucket userType=premium
 npm run list-bucket userType=premium bucketName=dev-attr-based-acc-ctrl-free-content
 ```
 
+<br/>
+
 ### 7. Refresh the Session (Optional)
 
 The temporary AWS credentials expire after 1 hour. They can be refreshed by running the following command.
@@ -169,6 +181,8 @@ npm run refresh-session userType=<free | premium>
 > [!NOTE]
 > We created a free-type user and upgraded to a premium user. You can additionally create a free-type user alongside
 > the premium user for testing their permissions in parallel.
+
+<br/>
 
 ## Libraries used
 
