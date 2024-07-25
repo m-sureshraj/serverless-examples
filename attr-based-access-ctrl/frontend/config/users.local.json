@@ -1,11 +1,11 @@
 {
   "free": {
-    "username": "<your free user email address>",
+    "username": "<valid email address>",
     "password": "",
     "givenName": ""
   },
   "premium": {
-    "username": "<your premium user email address>",
+    "username": "<valid email address>",
     "password": "",
     "givenName": ""
   }
