@@ -1,0 +1,40 @@
+service: deployment-with-github-actions
+
+provider:
+  name: aws
+  deploymentMethod: direct
+  runtime: nodejs20.x
+  region: ${opt:region, 'eu-west-2'}
+  stage: ${opt:stage, 'dev'}
+  logRetentionInDays: 14
+  architecture: arm64
+
+plugins:
+  - serverless-better-credentials
+  - serverless-esbuild
+
+custom:
+  # Used in the IAM role creation to permit only the specified repository in the organization to assume this role.
+  GithubRepoOwner: "m-sureshraj" # <-- replace with your GitHub username
+  GithubRepoName: "serverless-examples"
+
+  esbuild:
+    format: esm
+    outExtension:
+      # Unable to include package.json in the bundle, which defines the module system (ESM/CJS).
+      # Therefore, converting .js to .mjs for proper import/export resolution.
+      .js: .mjs
+
+functions:
+  api:
+    handler: index.handler
+    events:
+      - httpApi:
+          path: /
+          method: get
+
+resources:
+  Resources:
+    GithubActionDeploymentRole: ${file(./infra/resources.yml):GithubActionDeploymentRole}
+
+  Outputs: ${file(./infra/resources.yml):Outputs}

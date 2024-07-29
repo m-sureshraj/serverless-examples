@@ -1,0 +1,36 @@
+# This workflow is associated with the `/deployment-with-github-actions` project directory.
+
+name: example dir `deployment-with-github-actions` deployment
+
+on:
+  push:
+    branches:
+      - main # run the workflow when a push is made to the main branch
+    paths:
+      - 'deployment-with-github-actions/**'
+
+  pull_request:
+    branches:
+      - main # run the workflow when the target branch of the PR is main
+    paths:
+      - 'deployment-with-github-actions/**'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+        - name: ⬇️ Checkout repo
+          uses: actions/checkout@v4
+
+        - name: ⎔ Setup node
+          uses: actions/setup-node@v4
+          with:
+            node-version: 20
+
+        - name: Install dependencies
+          working-directory: ./deployment-with-github-actions
+          run: npm ci
+
+        - name: Unit test
+          working-directory: ./deployment-with-github-actions
+          run: npm run test

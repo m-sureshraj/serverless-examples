@@ -1,70 +1,79 @@
-name: deploy the selected branch to development (dev) deployment
+# This manual workflow allows us to deploy an example project to the development environment.
+# It must be triggered manually and requires the name of the example project as its input.
+# It uses AWS OpenID Connect (OIDC) to securely authenticate with AWS and deploy the necessary resources.
+
+name: deploy an example project to the development environment
 
 on:
   workflow_dispatch:
+    inputs:
+      directory_name:
+        description: 'Which example project do you want to deploy'
+        required: true
 
-#permissions:
-#  id-token: write # This is required for requesting the JWT
-#  contents: read  # This is required for actions/checkout
-
-env:
-  AWS_REGION : 'eu-west-2'
+permissions:
+  contents: read  # This is required for the actions/checkout step
 
 jobs:
   build:
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ${{ github.event.inputs.directory_name }}
     steps:
-      #      - name: ⬇️ Checkout repo
-      #        uses: actions/checkout@v4
-      #
-      #      - name: ⎔ Setup node
-      #        uses: actions/setup-node@v4
-      #        with:
-      #          node-version: 18
+      - name: ⬇️ Checkout repo
+        uses: actions/checkout@v4
 
-      - name: print the branch name
-        #        working-directory: ./deployment-with-github-actions
+      - name: ⎔ Setup node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+          cache-dependency-path: ${{ github.event.inputs.directory_name }}
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Unit test
+        run: npm run test
+
+  deploy:
+    needs: build #  This job depends on the build job.
+    runs-on: ubuntu-latest
+    # The environment name is set up in the repository settings. It manages the environment's variables and secrets.
+    # i.e. AWS_GITHUB_ACTIONS_DEPLOYMENT_IAM_ROLE_ARN and AWS_REGION
+    environment: development
+    permissions:
+      id-token: write # Fetch an OpenID Connect (OIDC) token.
+    defaults:
+      run: # steps that have the `run` command will use the given example project path as the working directory
+        working-directory: ${{ github.event.inputs.directory_name }}
+    steps:
+      - name: Git clone the repository
+        uses: actions/checkout@v4
+
+      - name: ⎔ Setup node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: configure aws credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          mask-aws-account-id: true
+          role-to-assume: ${{ secrets.AWS_GITHUB_ACTIONS_DEPLOYMENT_IAM_ROLE_ARN }} # dev env -> secrets
+          role-session-name: github-action-sls-examples
+          aws-region: ${{ vars.AWS_REGION }} # dev env -> vars
+
+      - name: versions
         run: |
-          echo "GITHUB_BASE_REF - ${{ github.base_ref }}"
-          echo "GITHUB_HEAD_REF - ${{ github.head_ref }}"
-          echo "GITHUB_REF - ${{ github.ref }}"
-          echo "GITHUB_REF_NAME - ${{ github.ref_name }}"
+          echo "printing working directory - $(pwd)"
+          echo "node version - $(node -v)"
+          echo "aws cli version - $(aws --version)"
+          echo "sls version - $(npm run sls-version)"
 
-#      - name: Unit test
-#        working-directory: ./deployment-with-github-actions
-#        run: npm run test
-
-#  deploy:
-#    needs: build
-#    runs-on: ubuntu-latest
-#    steps:
-#      - name: Git clone the repository
-#        uses: actions/checkout@v4
-#
-#      - name: ⎔ Setup node
-#        uses: actions/setup-node@v4
-#        with:
-#          node-version: 18
-#
-#      - name: Install dependencies
-#        working-directory: ./deployment-with-github-actions
-#        run: npm ci
-#
-#      - name: configure aws credentials
-#        uses: aws-actions/configure-aws-credentials@v4
-#        with:
-#          mask-aws-account-id: true
-#          role-to-assume: ${{ secrets.AWS_GITHUB_ACTIONS_ROLE_ARN }}
-#          role-session-name: github-action-sls-examples
-#          aws-region: ${{ env.AWS_REGION }}
-#
-#      - name: versions
-#        working-directory: ./deployment-with-github-actions
-#        run: |
-#          pwd
-#          node -v
-#          aws --version
-#
-#      - name: deploy
-#        working-directory: ./deployment-with-github-actions
-#        run: npm run deploy:dev
+      - name: deploy
+        run: npm run deploy:dev
