@@ -1,6 +1,6 @@
 # This workflow is associated with the `/deployment-with-github-actions` project directory.
 
-name: example dir `deployment-with-github-actions` deployment
+name: build and test `deployment-with-github-actions` example project
 
 on:
   push:
