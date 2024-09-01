@@ -1,10 +1,10 @@
-import { CognitoUserPool, CognitoUser } from "amazon-cognito-identity-js";
-
 import {
-  getSessionUser,
-  getUserPoolConfig,
-  parseCommandLineArgs,
-} from "./util.js";
+  CognitoIdentityProviderClient,
+  ConfirmSignUpCommand,
+} from "@aws-sdk/client-cognito-identity-provider";
+
+import { getSessionUser, parseCommandLineArgs } from "./util.js";
+import awsConfig from "../config/aws.json" assert { type: "json" };
 
 const { userType, confirmationCode } = parseCommandLineArgs();
 if (!confirmationCode) {
@@ -13,30 +13,26 @@ if (!confirmationCode) {
   );
 }
 
-confirmRegistration(userType, confirmationCode);
+await confirmRegistration(userType, confirmationCode);
 
 // Confirms a user using a confirmation code received via email after registration (signup).
-function confirmRegistration(userType, confirmationCode) {
-  const sessionUser = getSessionUser(userType);
-  const poolData = getUserPoolConfig();
-  const userPool = new CognitoUserPool(poolData);
-
-  const cognitoUser = new CognitoUser({
-    Username: sessionUser.username,
-    Pool: userPool,
+async function confirmRegistration(userType, confirmationCode) {
+  const client = new CognitoIdentityProviderClient({
+    region: awsConfig.region,
   });
 
-  const forceAliasCreation = false;
-  cognitoUser.confirmRegistration(
-    confirmationCode,
-    forceAliasCreation,
-    (err, result) => {
-      if (err) {
-        console.error(err.message || JSON.stringify(err));
-        return;
-      }
+  const { username } = getSessionUser(userType);
 
-      console.log(`User: "${cognitoUser.getUsername()}" was confirmed`);
-    },
-  );
+  const command = new ConfirmSignUpCommand({
+    ClientId: awsConfig.userPoolClientId,
+    Username: username,
+    ConfirmationCode: confirmationCode,
+  });
+
+  try {
+    await client.send(command);
+    console.log(`User: "${username}" was confirmed`);
+  } catch (error) {
+    console.error('An error occurred while confirming the user:', error);
+  }
 }
