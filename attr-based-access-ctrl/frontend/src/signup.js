@@ -1,48 +1,48 @@
 // https://www.maxivanov.io/aws-cognito-amplify-vs-amazon-cognito-identity-js-vs-aws-sdk/
 import {
-  CognitoUserPool,
-  CognitoUserAttribute,
-} from "amazon-cognito-identity-js";
+  CognitoIdentityProviderClient,
+  SignUpCommand,
+} from "@aws-sdk/client-cognito-identity-provider";
 
 import {
-  getUserPoolConfig,
   getSessionUser,
   parseCommandLineArgs,
 } from "./util.js";
+import awsConfig from "../config/aws.json" assert { type: "json" };
 
 const { userType } = parseCommandLineArgs();
-signUp(userType);
+await signUp(userType);
 
-// Registers a user with the application.
-// The UserPool client is configured to support only Secure Remote Password (SRP) authentication for enhanced security.
-// The `amazon-cognito-identity-js` lib handles this part internally
-function signUp(userType) {
-  const poolData = getUserPoolConfig();
+// Registers a user with the application
+async function signUp(userType) {
+  const client = new CognitoIdentityProviderClient({
+    region: awsConfig.region,
+  });
+
   const sessionUser = getSessionUser(userType);
 
-  const attributeList = [
-    new CognitoUserAttribute({
-      Name: "given_name",
-      Value: sessionUser.givenName,
-    }),
-  ];
-  const validationData = null;
+  const command = new SignUpCommand({
+    ClientId: awsConfig.userPoolClientId,
+    Username: sessionUser.username,
+    Password: sessionUser.password,
+    UserAttributes: [
+      {
+        Name: "given_name", // it's a required attribute during sign-up
+        Value: sessionUser.givenName,
+      },
+    ],
+  });
 
-  console.log(`signing up user: ${sessionUser.username}`);
+  try {
+    console.log(`signing up the user: ${sessionUser.username}`);
+    const response = await client.send(command);
+    console.log('User account was successfully created');
 
-  const userPool = new CognitoUserPool(poolData);
-  userPool.signUp(
-    sessionUser.username,
-    sessionUser.password,
-    attributeList,
-    validationData,
-    (err, result) => {
-      if (err) {
-        console.error(err.message || JSON.stringify(err));
-        return;
-      }
-
-      console.log(`User: "${result.user.getUsername()}" was created`);
-    },
-  );
+    if (response.UserConfirmed === false) {
+      // the user pool is configured to send a confirmation code to the user's email
+      console.log(`The user account requires confirmation; a confirmation code was sent to your email: ${response.CodeDeliveryDetails.Destination}`);
+    }
+  } catch (error) {
+    console.error("An error occurred while signing up the user:", error);
+  }
 }
