@@ -21,6 +21,9 @@ const sessionUser = usersConfig[userType];
 
 await signIn();
 
+// Logs the user into the application
+// The UserPool client is configured to support only Secure Remote Password (SRP) authentication flow for enhanced security
+//  and the `amazon-cognito-identity-js` lib handles this part internally
 async function signIn() {
   const userPoolConfig = getUserPoolConfig();
   const userPool = new CognitoUserPool(userPoolConfig);

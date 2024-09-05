@@ -190,12 +190,11 @@ npm run refresh-session userType=<free | premium>
   to sign requests with AWS Signature Version 4. The `/membership` endpoint is secured by IAM authorization,
   so only authenticated users can invoke it.
 
-- The `amazon-cognito-identity-js` package is used to communicate with the user pool and identity pool to
-  handle the sign-up, sign-in, token refresh, etc.
+- The `amazon-cognito-identity-js` package is used to communicate with the user pool to
+  handle the sign-in.
 
 ## Improvements
 
 - Replace the `amazon-cognito-identity-js` package with the compatible V3 version of the AWS SDK.
   - To communicate with the Cognito User Pool - [client-cognito-identity-provider](https://www.npmjs.com/package/@aws-sdk/client-cognito-identity-provider)
-  - To communicate with the Cognito Identity Pool - [client-cognito-identity](https://www.npmjs.com/package/@aws-sdk/client-cognito-identity)
 - Update the sign-up flow to use PKCE (Proof Key for Code Exchange).
