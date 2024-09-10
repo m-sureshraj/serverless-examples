@@ -27,6 +27,7 @@ provider:
         identitySource: $request.header.Cookie
 
 plugins:
+  - serverless-better-credentials
   # Needed for offline mode to be function. This plugin takes care of resolving CF intrinsic fns in the env variables when starting the offline mode
   - serverless-export-env
 
