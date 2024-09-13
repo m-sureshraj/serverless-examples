@@ -26,13 +26,6 @@ export async function writeTokens(userType, tokens = {}) {
   console.log("tokens successfully saved");
 }
 
-export function getUserPoolConfig() {
-  return {
-    UserPoolId: awsConfig.userPoolId,
-    ClientId: awsConfig.userPoolClientId,
-  };
-}
-
 export function getSessionUser(userType) {
   if (!userType.trim()) {
     throw new Error("userType is required");

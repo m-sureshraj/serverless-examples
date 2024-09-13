@@ -21,7 +21,6 @@
     "@aws-sdk/client-s3": "^3.525.0",
     "@aws-sdk/protocol-http": "^3.374.0",
     "@aws-sdk/signature-v4": "^3.374.0",
-    "amazon-cognito-identity-js": "^6.3.7",
     "aws-amplify": "^6.6.0",
     "edit-json-file": "^1.8.0"
   }
