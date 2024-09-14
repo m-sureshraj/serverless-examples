@@ -1,10 +1,10 @@
-import { confirmSignUp } from "aws-amplify/auth";
-
 import {
-  getSessionUser,
-  parseCommandLineArgs,
-  configureAmplify,
-} from "./util.js";
+  CognitoIdentityProviderClient,
+  ConfirmSignUpCommand,
+} from "@aws-sdk/client-cognito-identity-provider";
+
+import { getSessionUser, parseCommandLineArgs } from "./util.js";
+import awsConfig from "../config/aws.json" assert { type: "json" };
 
 const { userType, confirmationCode } = parseCommandLineArgs();
 if (!confirmationCode) {
@@ -13,21 +13,26 @@ if (!confirmationCode) {
   );
 }
 
-configureAmplify();
-
 await confirmRegistration(userType, confirmationCode);
 
 // Confirms a user using a confirmation code received via email after registration (signup).
 async function confirmRegistration(userType, confirmationCode) {
+  const client = new CognitoIdentityProviderClient({
+    region: awsConfig.region,
+  });
+
   const { username } = getSessionUser(userType);
 
+  const command = new ConfirmSignUpCommand({
+    ClientId: awsConfig.userPoolClientId,
+    Username: username,
+    ConfirmationCode: confirmationCode,
+  });
+
   try {
-    await confirmSignUp({
-      confirmationCode,
-      username,
-    });
+    await client.send(command);
     console.log(`User: "${username}" was confirmed`);
   } catch (error) {
-    console.error("An error occurred while confirming the user:", error);
+    console.error('An error occurred while confirming the user:', error);
   }
 }

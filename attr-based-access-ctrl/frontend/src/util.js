@@ -1,7 +1,6 @@
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
-import { Amplify } from "aws-amplify";
 import editJsonFile from "edit-json-file";
 
 import awsConfig from "../config/aws.json" assert { type: "json" };
@@ -24,6 +23,13 @@ export async function writeTokens(userType, tokens = {}) {
   console.log("saving tokens to the file: ", usersConfigPath);
   editJsonFile(usersConfigPath).set(`${userType}.tokens`, tokens).save();
   console.log("tokens successfully saved");
+}
+
+export function getUserPoolConfig() {
+  return {
+    UserPoolId: awsConfig.userPoolId,
+    ClientId: awsConfig.userPoolClientId,
+  };
 }
 
 export function getSessionUser(userType) {
@@ -55,16 +61,4 @@ export function parseCommandLineArgs() {
   }
 
   return parsedArgsObj;
-}
-
-export function configureAmplify() {
-  // https://www.maxivanov.io/aws-cognito-amplify-vs-amazon-cognito-identity-js-vs-aws-sdk/
-  Amplify.configure({
-    Auth: {
-      Cognito: {
-        userPoolId: awsConfig.userPoolId,
-        userPoolClientId: awsConfig.userPoolClientId,
-      },
-    },
-  });
 }
