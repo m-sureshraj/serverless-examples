@@ -1,0 +1,143 @@
+# https://docs.aws.amazon.com/AWSCloudFormation/latest/TemplateReference/aws-resource-events-eventbus.html
+EventBus:
+  Type: AWS::Events::EventBus
+  Properties:
+    Name: ${self:provider.stage}-sls-example-bus
+    Description: "Event bus for sls-example application"
+    LogConfig:
+      IncludeDetail: FULL
+      Level: INFO
+
+MyDiscoverer:
+  Type: AWS::EventSchemas::Discoverer
+  Properties:
+    SourceArn: !GetAtt EventBus.Arn
+    Description: 'discover all custom schemas'
+    CrossAccount: false
+
+# All events that are published to the bus will be archived.
+# Can use EventPattern to archive only a subset of events.
+EventBusArchive:
+  Type: AWS::Events::Archive
+  Properties:
+    ArchiveName: ${self:provider.stage}-sls-archive
+    Description: Archive all events from the event bus
+    SourceArn: !GetAtt EventBus.Arn
+    RetentionDays: 14
+
+# To test a rule on the default event bus on uploading/deleting an object in S3
+S3PhotoBucket:
+  Type: AWS::S3::Bucket
+  Properties:
+    BucketName: ${self:provider.stage}-sls-photo-bucket-123
+    AccessControl: Private
+    NotificationConfiguration:
+      EventBridgeConfiguration:
+        EventBridgeEnabled: true
+
+# DLQ for the processEvent Lambda function
+SQSEventProcessLambdaEventDLQ:
+  Type: AWS::SQS::Queue
+  Properties:
+    QueueName: ${self:provider.stage}-sls-event-process-lambda-event-dlq
+
+# DLQ for EventBridge rule
+SQSEventDeadLetterQueue:
+  Type: AWS::SQS::Queue
+  Properties:
+    QueueName: ${self:provider.stage}-sls-event-dead-letter-queue
+
+# create resource policy to allow EB to send events to the SQSEventDeadLetterQueue
+SQSEventDeadLetterQueuePolicy:
+  Type: AWS::SQS::QueuePolicy
+  Properties:
+    Queues:
+      - !Ref SQSEventDeadLetterQueue
+    PolicyDocument:
+      Version: "2012-10-17"
+      Statement:
+        Effect: Allow
+        Principal:
+          Service:
+            - events.amazonaws.com
+        Action: sqs:SendMessage
+        Resource: !GetAtt SQSEventDeadLetterQueue.Arn
+        # Couldn't find a way to reference the rule's ARN here, as SLS creates it behind the scenes. So being less restrictive here.
+#        Condition:
+#          ArnEquals:
+#            aws:SourceArn: Rule ARN
+
+# Start - Enables EventBridge to send info and error logs to CloudWatch Logs
+EventBusLogGroup:
+  Type: AWS::Logs::LogGroup
+  Properties:
+    LogGroupName: !Sub "/aws/vendedlogs/events/event-bus/${EventBus}"
+    RetentionInDays: 14
+
+EventBusLogDestination:
+  Type: AWS::Logs::DeliveryDestination
+  Properties:
+    Name: !Sub "EventsDeliveryDestination-${EventBus}-CWLogs"
+    DestinationResourceArn: !GetAtt EventBusLogGroup.Arn
+
+InfoLogSource:
+  Type: AWS::Logs::DeliverySource
+  Properties:
+    Name: !Sub "EventBusSource-${EventBus}-INFO_LOGS"
+    LogType: INFO_LOGS
+    ResourceArn: !GetAtt EventBus.Arn
+
+ErrorLogSource:
+  Type: AWS::Logs::DeliverySource
+  Properties:
+    Name: !Sub "EventBusSource-${EventBus}-ERROR_LOGS"
+    LogType: ERROR_LOGS
+    ResourceArn: !GetAtt EventBus.Arn
+
+InfoLogDelivery:
+  Type: AWS::Logs::Delivery
+  Properties:
+    DeliveryDestinationArn: !GetAtt EventBusLogDestination.Arn
+    DeliverySourceName: !Ref InfoLogSource
+
+ErrorLogDelivery:
+  Type: AWS::Logs::Delivery
+  DependsOn: InfoLogDelivery
+  Properties:
+    DeliveryDestinationArn: !GetAtt EventBusLogDestination.Arn
+    DeliverySourceName: !Ref ErrorLogSource
+
+EventBusLogResourcePolicy:
+  Type: AWS::Logs::ResourcePolicy
+  Properties:
+    PolicyName: !Sub "AWSLogDeliveryWrite-${EventBus}"
+    # Do not support YAML. Supports only JSON as a string
+    PolicyDocument: !Sub |
+      {
+        "Version": "2012-10-17",
+        "Statement": [
+          {
+            "Effect": "Allow",
+            "Principal": {
+              "Service": "delivery.logs.amazonaws.com"
+            },
+            "Action": [
+              "logs:CreateLogStream",
+              "logs:PutLogEvents"
+            ],
+            "Resource": "${EventBusLogGroup.Arn}:log-stream:*",
+            "Condition": {
+              "StringEquals": {
+                "aws:SourceAccount": "${AWS::AccountId}"
+              },
+              "ArnLike": {
+                "aws:SourceArn": [
+                  "${InfoLogSource.Arn}",
+                  "${ErrorLogSource.Arn}"
+                ]
+              }
+            }
+          }
+        ]
+      }
+# End - Enables EventBridge to send info and error logs to CloudWatch Logs
