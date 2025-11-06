@@ -1,0 +1,110 @@
+# "org" ensures this Service is used with the correct Serverless Framework Access Key.
+org: sureshraj
+service: event-bridge
+
+provider:
+  name: aws
+  runtime: nodejs22.x
+  region: eu-west-2
+  stage: ${opt:stage, 'dev'}
+  logRetentionInDays: 14
+  architecture: arm64
+  eventBridge:
+    useCloudFormation: true # Needed to create EventBridge resources via CloudFormation
+  environment:
+    EVENT_BUS_NAME: !GetAtt EventBus.Name
+
+package:
+  individually: true
+
+build:
+  # by default, esbuild will exclude 'aws-sdk/*' packages from the bundle
+  esbuild:
+    bundle: true
+    sourcemap: false
+    platform: 'node'
+    target: 'node22'
+
+functions:
+  sendEvent:
+    handler: send-event.handler
+    events:
+      - httpApi:
+          path: /
+          method: post
+    # Dedicated role for this function (https://www.serverless.com/framework/docs/providers/aws/guide/iam#per-function-iam-roles)
+    iam:
+      inheritStatements: true # Merge provider.iam.role.statements into this function role
+      role:
+        statements:
+          - Effect: Allow
+            Action:
+              - events:PutEvents
+            Resource:
+              - !GetAtt EventBus.Arn
+
+  processEvent:
+    handler: process.handler
+    maximumRetryAttempts: 2
+    # https://www.serverless.com/framework/docs/providers/aws/guide/functions#dlq-with-sqs
+    onError: !GetAtt SQSEventProcessLambdaEventDLQ.Arn
+    # The onError config currently only supports SNS topic arns due to a race condition
+    # when using SQS queue arns and updating the IAM role. So adding it manually
+    iam:
+      # Note that SLS adds the sns:Publish permission automatically when using
+      # onError event though we are using SQS here.
+      inheritStatements: true
+      role:
+        statements:
+          - Effect: Allow
+            Action:
+              - sqs:SendMessage
+            Resource:
+              - !GetAtt SQSEventProcessLambdaEventDLQ.Arn
+    events:
+      - eventBridge: # registers a rule in the default event bus
+          pattern:
+            source:
+              - "aws.s3"
+            detail-type:
+              - "Object Created"
+              - "Object Deleted"
+            detail:
+              bucket:
+                name:
+                  - !Ref S3PhotoBucket
+      - eventBridge: # registers a rule in the custom event bus
+          eventBus: !GetAtt EventBus.Name
+          deadLetterQueueArn: !GetAtt SQSEventDeadLetterQueue.Arn
+          retryPolicy:
+            maximumRetryAttempts: 3 # number of times to retry sending an event to a target after an error occurs.
+          pattern:
+            source:
+              - "prefix.myapp"
+            detail-type:
+              - orderCreated
+              - transactionProcessed
+              - userSignedUp
+              - paymentFailed
+
+resources:
+  Resources:
+    EventBus: ${file(./infra/resources.yml):EventBus}
+    MyDiscoverer: ${file(./infra/resources.yml):MyDiscoverer}
+    EventBusArchive: ${file(./infra/resources.yml):EventBusArchive}
+
+    S3PhotoBucket: ${file(./infra/resources.yml):S3PhotoBucket}
+
+    SQSEventDeadLetterQueue: ${file(./infra/resources.yml):SQSEventDeadLetterQueue}
+    SQSEventDeadLetterQueuePolicy: ${file(./infra/resources.yml):SQSEventDeadLetterQueuePolicy}
+
+    SQSEventProcessLambdaEventDLQ: ${file(./infra/resources.yml):SQSEventProcessLambdaEventDLQ}
+
+    # Enables EventBridge to send info and error logs to CloudWatch Logs
+    EventBusLogGroup: ${file(./infra/resources.yml):EventBusLogGroup}
+    EventBusLogResourcePolicy: ${file(./infra/resources.yml):EventBusLogResourcePolicy}
+    EventBusLogDestination: ${file(./infra/resources.yml):EventBusLogDestination}
+    InfoLogSource: ${file(./infra/resources.yml):InfoLogSource}
+    ErrorLogSource: ${file(./infra/resources.yml):ErrorLogSource}
+    InfoLogDelivery: ${file(./infra/resources.yml):InfoLogDelivery}
+    ErrorLogDelivery: ${file(./infra/resources.yml):ErrorLogDelivery}

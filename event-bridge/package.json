@@ -1,0 +1,22 @@
+{
+  "name": "event-bridge",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "package": "serverless package",
+    "deploy": "serverless deploy",
+    "remove": "serverless remove"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "serverless": "^4.21.0"
+  },
+  "dependencies": {
+    "@aws-sdk/client-eventbridge": "^3.919.0"
+  }
+}
