@@ -9,6 +9,11 @@ provider:
   stage: ${opt:stage, 'dev'}
   logRetentionInDays: 14
   architecture: arm64
+  iam:
+    role:
+      # (https://www.serverless.com/framework/docs/providers/aws/guide/iam#per-function-iam-roles)
+      # Enable per-function mode that skips the shared service-wide role creation
+      mode: perFunction
   eventBridge:
     useCloudFormation: true # Needed to create EventBridge resources via CloudFormation
   environment:
